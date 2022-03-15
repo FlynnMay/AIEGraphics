@@ -1,8 +1,14 @@
 #include "AIEGraphicsApp.h"
 #include "Gizmos.h"
 #include "Input.h"
+#include "Planet.h"
+#include "SceneObject.h"
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/euler_angles.hpp>
+#include <glm/gtx/quaternion.hpp>
+
 
 using glm::vec3;
 using glm::vec4;
@@ -24,9 +30,19 @@ bool AIEGraphicsApp::startup() {
 	// initialise gizmo primitive counts
 	Gizmos::create(10000, 10000, 10000, 10000);
 
+	LaunchShader();
+	
 	// create simple camera transforms
 	m_viewMatrix = glm::lookAt(vec3(10), vec3(0), vec3(0, 1, 0));
 	m_projectionMatrix = glm::perspective(glm::pi<float>() * 0.25f, 16.0f / 9.0f, 0.1f, 1000.0f);
+
+	// PLANET ---REMOVE---
+	sun = new Planet(glm::vec3(0, 0, 0), 1.0f, RotationDirection::CLOCKWISE, glm::vec4(.75f, 0.15f, 0.75f, 1.0f));
+	earth = new Planet(glm::vec3(2, 0, 0), 0.8f, RotationDirection::CLOCKWISE, glm::vec4(0, 0.15f, 0.75f, 1.0f));
+	earth->SetParent(sun);
+	m_sceneObjects.push_back(sun);
+
+	// -------------------
 
 	return true;
 }
@@ -53,6 +69,14 @@ void AIEGraphicsApp::update(float deltaTime) {
 						i == 10 ? white : black);
 	}
 
+	// PLANET ---REMOVE---
+	glm::quat quaterion;
+	quaterion = glm::quat(glm::vec3(glm::radians(0.0f), glm::radians(0.0f), glm::radians(90.0f)));
+	sun->SetTransform(glm::toMat4(quaterion) * *sun->GetTransform());
+	
+	sun->Update(deltaTime);
+	// -------------------
+
 	// add a transform so that we can see the axis
 	Gizmos::addTransform(mat4(1));
 
@@ -71,5 +95,42 @@ void AIEGraphicsApp::draw() {
 	// update perspective based on screen size
 	m_projectionMatrix = glm::perspective(glm::pi<float>() * 0.25f, getWindowWidth() / (float)getWindowHeight(), 0.1f, 1000.0f);
 
+	//Bind the shader
+	m_shader.bind();
+
+	// Bind the transform
+	auto pvm = m_projectionMatrix * m_viewMatrix * m_quadTransform;
+	m_shader.bindUniform("ProjectionViewModel", pvm);
+
+	// Draw the quad
+	m_quadMesh.Draw();
+
+	// PLANET ---REMOVE---
+
+	sun->Draw();
+
+	// -------------------
+
 	Gizmos::draw(m_projectionMatrix * m_viewMatrix);
+}
+
+bool AIEGraphicsApp::LaunchShader()
+{
+	m_shader.loadShader(aie::eShaderStage::VERTEX, "./shaders/simple.vert");
+	m_shader.loadShader(aie::eShaderStage::FRAGMENT, "./shaders/simple.frag");
+
+	if (!m_shader.link()) {
+		printf("Simple Shader Error: %s\n", m_shader.getLastError());
+		return false;
+	}
+
+	m_quadMesh.InitialiseQuad();
+	m_quadTransform = {
+		10,  0,  0,  0,
+		 0, 10,  0,  0,
+		 0,  0, 10,  0,
+		 0,  0,  0,  1
+	}; // This is 10 units large
+
+	return true;
 }
