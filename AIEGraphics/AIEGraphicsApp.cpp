@@ -70,10 +70,16 @@ void AIEGraphicsApp::update(float deltaTime) {
 	}
 
 	// PLANET ---REMOVE---
-	glm::quat quaterion;
-	quaterion = glm::quat(glm::vec3(glm::radians(0.0f), glm::radians(0.0f), glm::radians(90.0f)));
-	sun->SetTransform(glm::toMat4(quaterion) * *sun->GetTransform());
+	//glm::quat quaterion;
+	//quaterion = glm::quat(glm::vec3(glm::radians(0.0f), glm::radians(0.0f), glm::radians(90.0f)));
+	//sun->SetTransform(glm::toMat4(quaterion) * *sun->GetTransform());
 	
+	glm::mat4 trans = *sun->GetTransform();
+	//trans = glm::rotate(trans, glm::radians(90.0f), glm::vec3(0.0, 0.0, 1.0));
+	glm::mat4 model = glm::mat4(1.0f);
+	model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0, 0.0, 1.0));
+	auto output = trans * model;
+	sun->SetTransform(output);
 	sun->Update(deltaTime);
 	// -------------------
 
