@@ -15,6 +15,9 @@ public:
 
 	void InitialiseQuad();
 	void Initialise(unsigned int vertexCount, const Vertex* vertices, unsigned int indexCount = 0, unsigned int* indices = nullptr);
+	void CreateCube();
+	void CreatePyramid();
+	void CreateGrid(int col, int rows);
 	virtual void Draw();
 
 protected:

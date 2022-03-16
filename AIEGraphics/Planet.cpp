@@ -36,8 +36,8 @@ void Planet::OnDraw()
 	glm::vec3 skew;
 	glm::vec4 perspective;
 
-	auto gt = GetGlobalTransform();
+	glm::mat4* gt = new glm::mat4(GetGlobalTransform());
 
-	glm::decompose(gt, scale, rotation, translation, skew, perspective);
-	aie::Gizmos::addSphere(translation, m_radius, 16, 16, m_colour);
+	glm::decompose(*gt, scale, rotation, translation, skew, perspective);
+	aie::Gizmos::addSphere(translation, m_radius, 16, 16, m_colour, gt);
 }
