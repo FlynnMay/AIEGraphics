@@ -29,18 +29,23 @@ void Mesh::InitialiseQuad()
 	vertices[0].position = { -0.5f, 0.0f,  0.5f, 1.0f };
 	vertices[1].position = {  0.5f, 0.0f,  0.5f, 1.0f };
 	vertices[2].position = { -0.5f, 0.0f, -0.5f, 1.0f };
-
 	vertices[3].position = { -0.5f, 0.0f,  -0.5f, 1.0f };
 	vertices[4].position = {  0.5f, 0.0f,  0.5f, 1.0f };
 	vertices[5].position = {  0.5f, 0.0f, -0.5f, 1.0f };
 
-	vertices[0].normal = {0,1,0,0};
-	vertices[1].normal = {0,1,0,0};
-	vertices[2].normal = {0,1,0,0};
+	vertices[0].normal = { 0, 1, 0, 0 };
+	vertices[1].normal = { 0, 1, 0, 0 };
+	vertices[2].normal = { 0, 1, 0, 0 };
+	vertices[3].normal = { 0, 1, 0, 0 };
+	vertices[4].normal = { 0, 1, 0, 0 };
+	vertices[5].normal = { 0, 1, 0, 0 };
 
-	vertices[3].normal = {0,1,0,0};
-	vertices[4].normal = {0,1,0,0};
-	vertices[5].normal = {0,1,0,0};
+	vertices[0].texCoord = { 0, 1 }; // bottom left
+	vertices[1].texCoord = { 1, 1 }; // bottom right
+	vertices[2].texCoord = { 0, 0 }; // top left
+	vertices[3].texCoord = { 0, 0 }; // top left
+	vertices[4].texCoord = { 1, 1 }; // bottom right
+	vertices[5].texCoord = { 1, 0 }; // top right
 
 
 	// Fill the vertex buffer
@@ -53,6 +58,10 @@ void Mesh::InitialiseQuad()
 	// Enable Second element as the normal
 	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(1, 4, GL_FLOAT, GL_TRUE, sizeof(Vertex), (void*)16);
+
+	// Enable the third element as the texture coord
+	glEnableVertexAttribArray(2);
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)32);
 
 	// Unbind the buffers
 	glBindVertexArray(0);

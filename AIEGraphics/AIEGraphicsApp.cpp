@@ -25,7 +25,7 @@ AIEGraphicsApp::~AIEGraphicsApp() {
 }
 
 bool AIEGraphicsApp::startup() {
-	
+
 	setBackgroundColour(0.25f, 0.25f, 0.25f);
 
 	// initialise gizmo primitive counts
@@ -68,18 +68,18 @@ void AIEGraphicsApp::update(float deltaTime) {
 	vec4 black(0, 0, 0, 1);
 	for (int i = 0; i < 21; ++i) {
 		Gizmos::addLine(vec3(-10 + i, 0, 10),
-						vec3(-10 + i, 0, -10),
-						i == 10 ? white : black);
+			vec3(-10 + i, 0, -10),
+			i == 10 ? white : black);
 		Gizmos::addLine(vec3(10, 0, -10 + i),
-						vec3(-10, 0, -10 + i),
-						i == 10 ? white : black);
+			vec3(-10, 0, -10 + i),
+			i == 10 ? white : black);
 	}
 
 	// PLANET ---REMOVE---
 	//glm::quat quaterion;
 	//quaterion = glm::quat(glm::vec3(glm::radians(0.0f), glm::radians(0.0f), glm::radians(90.0f)));
 	//sun->SetTransform(glm::toMat4(quaterion) * *sun->GetTransform());
-	
+
 	//glm::mat4 trans = *sun->GetTransform();
 	////trans = glm::rotate(trans, glm::radians(90.0f), glm::vec3(0.0, 0.0, 1.0));
 	//glm::mat4 model = glm::mat4(1.0f);
@@ -119,23 +119,23 @@ void AIEGraphicsApp::draw() {
 
 	// update perspective based on screen size
 	glm::mat4 projectionMatrix = m_camera.GetProjectionMatrix(getWindowWidth(), getWindowHeight());
+	glm::mat4 viewMatrix = m_camera.GetViewMatrix();
 
 	//Bind the shader
 	//m_shader.bind();
 
 	// Bind the transform
 	//auto pvm = m_projectionMatrix * m_viewMatrix * m_quadTransform;
+
+	//=================
+	// Bunny
+	//=================
 	m_modelTransform = m_bunnyTransform;
-	glm::mat4 viewMatrix = m_camera.GetViewMatrix();
+	m_phongShader.bind();
 	auto pvm = projectionMatrix * viewMatrix * m_modelTransform;
-	//m_shader.bindUniform("ProjectionViewModel", pvm);
+	// Bind the transform
 	m_phongShader.bindUniform("ProjectionViewModel", pvm);
 
-
-	// Draw mesh
-	m_bunnyMesh.draw();
-
-	m_phongShader.bind();
 
 	// Bind light
 	m_phongShader.bindUniform("AmbientColour", m_ambientLight);
@@ -143,16 +143,37 @@ void AIEGraphicsApp::draw() {
 	m_phongShader.bindUniform("LightDirection", m_light.direction);
 	m_phongShader.bindUniform("cameraPosition", m_camera.GetPosition());
 
-
-	// Bind the transform
-	pvm = projectionMatrix * viewMatrix * m_quadTransform;
-	m_phongShader.bindUniform("ProjectionViewModel", pvm);
-
 	// Simple binding for lightind data based on model use
 	m_phongShader.bindUniform("ModelMatrix", m_modelTransform);
 
+	// Draw mesh
+	m_bunnyMesh.draw();
+	//=================
+
+	//=================
+	// Soul Spear
+	//=================
+	m_texturedShader.bind();
+	pvm = projectionMatrix * viewMatrix * m_spearTransform;
+	m_texturedShader.bindUniform("ProjectionViewModel", pvm);
+	m_texturedShader.bindUniform("diffuseTexture", 0);
+	m_spearTexture.bind(0);
+	m_spearMesh.draw();
+	//=================
+
+	//=================
+	// Grid Texture Quad
+	//=================
+	m_texturedShader.bind();
+	m_modelTransform = m_quadTransform;
+	pvm = projectionMatrix * viewMatrix * m_modelTransform;
+	m_texturedShader.bindUniform("ProjectionViewModel", pvm);
+	m_texturedShader.bindUniform("diffuseTexture", 0);
+	m_gridTexture.bind(0);
 	// Draw the quad
 	m_quadMesh.Draw();
+	//=================
+
 
 	// PLANET ---REMOVE---
 
@@ -172,6 +193,9 @@ bool AIEGraphicsApp::LaunchShader()
 	m_phongShader.loadShader(aie::eShaderStage::VERTEX, "./shaders/phong.vert");
 	m_phongShader.loadShader(aie::eShaderStage::FRAGMENT, "./shaders/phong.frag");
 
+	m_texturedShader.loadShader(aie::eShaderStage::VERTEX, "./shaders/textured.vert");
+	m_texturedShader.loadShader(aie::eShaderStage::FRAGMENT, "./shaders/textured.frag");
+
 	if (!m_shader.link()) {
 		printf("Simple Shader Error: %s\n", m_shader.getLastError());
 		return false;
@@ -182,17 +206,47 @@ bool AIEGraphicsApp::LaunchShader()
 		return false;
 	}
 
+	if (!m_texturedShader.link()) {
+		printf("Textured Shader Error: %s\n", m_texturedShader.getLastError());
+		return false;
+	}
+
 	if (!m_bunnyMesh.load("./stanford/bunny.obj"))
 	{
 		printf("Bunny Mesh Error!\n");
 		return false;
 	}
-	
+
+	if (!m_spearMesh.load("./soulspear/soulspear.obj", true, true))
+	{
+		printf("Spear Mesh Error!\n");
+		return false;
+	}
+
+	if (!m_gridTexture.load("./textures/numbered_grid.tga"))
+	{
+		printf("Failed to load the grid texture, please check file path!\n");
+		return false;
+	}
+
+	if (!m_spearTexture.load("./soulspear/soulspear_diffuse.tga"))
+	{
+		printf("Failed to load the grid texture, please check file path!\n");
+		return false;
+	}
+
 	m_bunnyTransform = {
-		0.5f,0,0,0,
-		0,0.5f,0,0,
-		0,0,0.5f,0,
+		0.05f,0,0,0,
+		0,0.05f,0,0,
+		0,0,0.05f,0,
 		0,0,0,1
+	};
+
+	m_spearTransform = {
+		1.0f,0,0,0,
+		0,1.0f,0,0,
+		0,0,1.0f,0,
+		0,0,0,1.0f
 	};
 
 
@@ -204,7 +258,7 @@ bool AIEGraphicsApp::LaunchShader()
 	vertices[3].position = { 0.5f, 0 ,-0.5f, 1.0f };
 
 	unsigned int indices[6] = {
-		0,1,2,2,1,3 
+		0,1,2,2,1,3
 	};
 	//m_quadMesh.Initialise(4, vertices, 6, indices);
 	//m_quadMesh.CreateGrid(2,2);

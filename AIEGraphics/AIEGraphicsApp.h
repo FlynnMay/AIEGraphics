@@ -1,12 +1,12 @@
 #pragma once
 
+#include <glm/mat4x4.hpp>
+#include <list>
 #include "Application.h"
 #include "Shader.h"
 #include "Mesh.h"
 #include "OBJMesh.h"
 #include "Camera.h"
-#include <glm/mat4x4.hpp>
-#include <list>
 
 class SceneObject;
 class AIEGraphicsApp : public aie::Application {
@@ -26,13 +26,23 @@ protected:
 
 	bool LaunchShader();
 
+
 	aie::ShaderProgram m_shader;
 	aie::ShaderProgram m_phongShader;
+	aie::ShaderProgram m_texturedShader;
+	
+	aie::Texture m_gridTexture;
+	aie::Texture m_spearTexture;
+
 	Mesh m_quadMesh;
+	
 	glm::mat4 m_modelTransform;
 	glm::mat4 m_quadTransform;
 	aie::OBJMesh m_bunnyMesh;
 	glm::mat4 m_bunnyTransform;
+
+	aie::OBJMesh m_spearMesh;
+	glm::mat4 m_spearTransform;
 
 	// camera transforms
 	//glm::mat4	m_viewMatrix;
