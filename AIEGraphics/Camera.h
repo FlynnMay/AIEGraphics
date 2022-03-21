@@ -21,14 +21,14 @@ public:
 	glm::mat4 GetProjection();
 	glm::mat4 GetProjectionView();
 
-
-private:
+protected:
 	float m_theta;
 	float m_phi;
 	glm::vec3 m_position;
-
 	float m_lastMouseX;
 	float m_lastMouseY;
+
+private:
 
 	glm::mat4 m_worldTransform;
 	glm::mat4 m_viewTransform;

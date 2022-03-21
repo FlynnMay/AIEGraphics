@@ -3,6 +3,7 @@
 #include "Input.h"
 #include "Planet.h"
 #include "SceneObject.h"
+#include "FlyCamera.h"
 #include <imgui.h>
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
@@ -39,8 +40,8 @@ bool AIEGraphicsApp::startup() {
 
 	m_light.colour = { 1, 1, 0 };
 	m_ambientLight = { 0.25f, 0.25f, 0.25f };
-	m_camera = Camera();
-	m_camera.SetPosition({ -10,2,0 });
+	m_camera = new FlyCamera();
+	m_camera->SetPosition({ -10,2,0 });
 
 	// PLANET ---REMOVE---
 	//sun = new Planet(glm::vec3(0, 0, 0), 1.0f, RotationDirection::CLOCKWISE, glm::vec4(.75f, 0.15f, 0.75f, 1.0f));
@@ -104,7 +105,7 @@ void AIEGraphicsApp::update(float deltaTime) {
 	if (input->isKeyDown(aie::INPUT_KEY_ESCAPE))
 		quit();
 
-	m_camera.Update(deltaTime);
+	m_camera->Update(deltaTime);
 
 	ImGui::Begin("Light Settings");
 	ImGui::DragFloat3("Sunlight Direction", &m_light.direction[0], 0.1f, -0.1f, 1.0f);
@@ -118,14 +119,8 @@ void AIEGraphicsApp::draw() {
 	clearScreen();
 
 	// update perspective based on screen size
-	glm::mat4 projectionMatrix = m_camera.GetProjectionMatrix(getWindowWidth(), getWindowHeight());
-	glm::mat4 viewMatrix = m_camera.GetViewMatrix();
-
-	//Bind the shader
-	//m_shader.bind();
-
-	// Bind the transform
-	//auto pvm = m_projectionMatrix * m_viewMatrix * m_quadTransform;
+	glm::mat4 projectionMatrix = m_camera->GetProjectionMatrix(getWindowWidth(), getWindowHeight());
+	glm::mat4 viewMatrix = m_camera->GetViewMatrix();
 
 	//=================
 	// Bunny
@@ -141,7 +136,7 @@ void AIEGraphicsApp::draw() {
 	m_phongShader.bindUniform("AmbientColour", m_ambientLight);
 	m_phongShader.bindUniform("LightColour", m_light.colour);
 	m_phongShader.bindUniform("LightDirection", m_light.direction);
-	m_phongShader.bindUniform("cameraPosition", m_camera.GetPosition());
+	m_phongShader.bindUniform("cameraPosition", m_camera->GetPosition());
 
 	// Simple binding for lightind data based on model use
 	m_phongShader.bindUniform("ModelMatrix", m_modelTransform);
@@ -187,6 +182,7 @@ void AIEGraphicsApp::draw() {
 
 bool AIEGraphicsApp::LaunchShader()
 {
+#pragma region Shaders
 	m_shader.loadShader(aie::eShaderStage::VERTEX, "./shaders/simple.vert");
 	m_shader.loadShader(aie::eShaderStage::FRAGMENT, "./shaders/simple.frag");
 
@@ -211,6 +207,10 @@ bool AIEGraphicsApp::LaunchShader()
 		return false;
 	}
 
+#pragma endregion
+
+#pragma region Mesh
+
 	if (!m_bunnyMesh.load("./stanford/bunny.obj"))
 	{
 		printf("Bunny Mesh Error!\n");
@@ -222,6 +222,9 @@ bool AIEGraphicsApp::LaunchShader()
 		printf("Spear Mesh Error!\n");
 		return false;
 	}
+#pragma endregion
+	
+#pragma region Texture
 
 	if (!m_gridTexture.load("./textures/numbered_grid.tga"))
 	{
@@ -235,6 +238,8 @@ bool AIEGraphicsApp::LaunchShader()
 		return false;
 	}
 
+#pragma endregion
+	
 	m_bunnyTransform = {
 		0.05f,0,0,0,
 		0,0.05f,0,0,

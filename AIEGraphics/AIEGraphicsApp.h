@@ -49,7 +49,7 @@ protected:
 	//glm::mat4	m_projectionMatrix;
 
 	// camera
-	Camera m_camera;
+	Camera* m_camera;
 
 	// other stuff
 	SceneObject* sun;
