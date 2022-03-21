@@ -34,12 +34,13 @@ bool AIEGraphicsApp::startup() {
 	LaunchShader();
 
 	// create simple camera transforms
-	m_viewMatrix = glm::lookAt(vec3(10), vec3(0), vec3(0, 1, 0));
-	m_projectionMatrix = glm::perspective(glm::pi<float>() * 0.25f, getWindowWidth() / (float)getWindowHeight(), 0.1f, 1000.f);
+	//m_viewMatrix = glm::lookAt(vec3(10), vec3(0), vec3(0, 1, 0));
+	//m_projectionMatrix = glm::perspective(glm::pi<float>() * 0.25f, getWindowWidth() / (float)getWindowHeight(), 0.1f, 1000.f);
 
 	m_light.colour = { 1, 1, 0 };
 	m_ambientLight = { 0.25f, 0.25f, 0.25f };
-
+	m_camera = Camera();
+	m_camera.SetPosition({ -10,2,0 });
 
 	// PLANET ---REMOVE---
 	//sun = new Planet(glm::vec3(0, 0, 0), 1.0f, RotationDirection::CLOCKWISE, glm::vec4(.75f, 0.15f, 0.75f, 1.0f));
@@ -91,7 +92,7 @@ void AIEGraphicsApp::update(float deltaTime) {
 	// add a transform so that we can see the axis
 	Gizmos::addTransform(mat4(1));
 
-	// GRab the time since the application started
+	// Grab the time since the application started
 	float time = getTime();
 
 	//// Rotate the light
@@ -103,38 +104,7 @@ void AIEGraphicsApp::update(float deltaTime) {
 	if (input->isKeyDown(aie::INPUT_KEY_ESCAPE))
 		quit();
 
-	//Input UP/DOWN - ZOOM
-	if (input->isKeyDown(aie::INPUT_KEY_UP))
-		m_zoom -= 0.5f;
-
-	if (input->isKeyDown(aie::INPUT_KEY_DOWN))
-		m_zoom += 0.5f;
-
-	//Input LEFT/RIGHT - ROTATION
-	if (input->isKeyDown(aie::INPUT_KEY_Q))
-		m_rotation += deltaTime * glm::radians(m_rotationSpeed);
-
-	if (input->isKeyDown(aie::INPUT_KEY_E))
-		m_rotation -= deltaTime * glm::radians(m_rotationSpeed);
-
-	vec3 forward = -vec3(cos(m_rotation), 0, sin(m_rotation));
-	vec3 right = vec3(forward.z, 0, -forward.x);
-
-	//Input W/S - Z MOVE
-	if (input->isKeyDown(aie::INPUT_KEY_W))
-		m_position += forward * deltaTime * m_speed;
-
-	if (input->isKeyDown(aie::INPUT_KEY_S))
-		m_position -= forward * deltaTime * m_speed;
-
-	//Input A/D - X MOVE
-	if (input->isKeyDown(aie::INPUT_KEY_A))
-		m_position += right * deltaTime * m_speed;
-
-	if (input->isKeyDown(aie::INPUT_KEY_D))
-		m_position -= right * deltaTime * m_speed;
-
-	m_viewMatrix = glm::lookAt(vec3(cos(m_rotation), 1, sin(m_rotation)) * m_zoom + m_position, m_position, vec3(0, 1, 0));
+	m_camera.Update(deltaTime);
 
 	ImGui::Begin("Light Settings");
 	ImGui::DragFloat3("Sunlight Direction", &m_light.direction[0], 0.1f, -0.1f, 1.0f);
@@ -148,7 +118,7 @@ void AIEGraphicsApp::draw() {
 	clearScreen();
 
 	// update perspective based on screen size
-	m_projectionMatrix = glm::perspective(glm::pi<float>() * 0.25f, getWindowWidth() / (float)getWindowHeight(), 0.1f, 1000.0f);
+	glm::mat4 projectionMatrix = m_camera.GetProjectionMatrix(getWindowWidth(), getWindowHeight());
 
 	//Bind the shader
 	//m_shader.bind();
@@ -156,13 +126,14 @@ void AIEGraphicsApp::draw() {
 	// Bind the transform
 	//auto pvm = m_projectionMatrix * m_viewMatrix * m_quadTransform;
 	m_modelTransform = m_bunnyTransform;
-	auto pvm = m_projectionMatrix * m_viewMatrix * m_modelTransform;
+	glm::mat4 viewMatrix = m_camera.GetViewMatrix();
+	auto pvm = projectionMatrix * viewMatrix * m_modelTransform;
 	//m_shader.bindUniform("ProjectionViewModel", pvm);
 	m_phongShader.bindUniform("ProjectionViewModel", pvm);
 
 
 	// Draw mesh
-	//m_bunnyMesh.draw();
+	m_bunnyMesh.draw();
 
 	m_phongShader.bind();
 
@@ -170,18 +141,18 @@ void AIEGraphicsApp::draw() {
 	m_phongShader.bindUniform("AmbientColour", m_ambientLight);
 	m_phongShader.bindUniform("LightColour", m_light.colour);
 	m_phongShader.bindUniform("LightDirection", m_light.direction);
-	m_phongShader.bindUniform("cameraPosition", vec3(glm::inverse(m_viewMatrix)[3]));
+	m_phongShader.bindUniform("cameraPosition", m_camera.GetPosition());
 
 
 	// Bind the transform
-	pvm = m_projectionMatrix * m_viewMatrix * m_quadTransform;
+	pvm = projectionMatrix * viewMatrix * m_quadTransform;
 	m_phongShader.bindUniform("ProjectionViewModel", pvm);
 
 	// Simple binding for lightind data based on model use
 	m_phongShader.bindUniform("ModelMatrix", m_modelTransform);
 
 	// Draw the quad
-	//m_quadMesh.Draw();
+	m_quadMesh.Draw();
 
 	// PLANET ---REMOVE---
 
@@ -189,7 +160,7 @@ void AIEGraphicsApp::draw() {
 
 	// -------------------
 
-	Gizmos::draw(m_projectionMatrix * m_viewMatrix);
+	Gizmos::draw(projectionMatrix * viewMatrix);
 	Gizmos::draw2D((float)getWindowWidth(), (float)getWindowHeight());
 }
 

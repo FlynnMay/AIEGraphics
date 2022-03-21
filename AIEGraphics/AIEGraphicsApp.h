@@ -4,6 +4,7 @@
 #include "Shader.h"
 #include "Mesh.h"
 #include "OBJMesh.h"
+#include "Camera.h"
 #include <glm/mat4x4.hpp>
 #include <list>
 
@@ -34,8 +35,11 @@ protected:
 	glm::mat4 m_bunnyTransform;
 
 	// camera transforms
-	glm::mat4	m_viewMatrix;
-	glm::mat4	m_projectionMatrix;
+	//glm::mat4	m_viewMatrix;
+	//glm::mat4	m_projectionMatrix;
+
+	// camera
+	Camera m_camera;
 
 	// other stuff
 	SceneObject* sun;
