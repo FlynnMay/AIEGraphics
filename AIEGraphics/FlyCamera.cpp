@@ -10,7 +10,6 @@ void FlyCamera::Update(float _dt)
 	// calculate the forwards and right axes and up axis for the camera
 	glm::vec3 forward(cos(phiR) * cos(thetaR), sin(phiR), cos(phiR) * sin(thetaR));
 	glm::vec3 right(-sin(thetaR), 0, cos(thetaR));
-	glm::vec3 up(0, 1, 0);
 
 	// use the WASD, ZX keys to the move camera around
 	if (input->isKeyDown(aie::INPUT_KEY_X))

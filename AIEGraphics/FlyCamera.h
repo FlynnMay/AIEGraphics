@@ -8,6 +8,6 @@ public:
 
 private:
 	float m_speed;
-	glm::vec3 up;
+	glm::vec3 up = glm::vec3(0,1,0);
 };
 
