@@ -8,6 +8,7 @@
 #include "OBJMesh.h"
 #include "Camera.h"
 
+class Scene;
 class SceneObject;
 class AIEGraphicsApp : public aie::Application {
 public:
@@ -30,9 +31,11 @@ protected:
 	aie::ShaderProgram m_shader;
 	aie::ShaderProgram m_phongShader;
 	aie::ShaderProgram m_texturedShader;
+	aie::ShaderProgram m_normalMapShader;
 	
 	aie::Texture m_gridTexture;
 	aie::Texture m_spearTexture;
+	aie::Texture m_ironManTexture;
 
 	Mesh m_quadMesh;
 	
@@ -43,6 +46,9 @@ protected:
 
 	aie::OBJMesh m_spearMesh;
 	glm::mat4 m_spearTransform;
+
+	aie::OBJMesh m_otherMesh;
+	glm::mat4 m_otherTransform;
 
 	// camera transforms
 	//glm::mat4	m_viewMatrix;
@@ -61,13 +67,8 @@ protected:
 	float m_rotationSpeed = 45.0f;
 	float m_rotation = 0.0f;
 	glm::vec3 m_position = glm::vec3(0);
-
-	struct Light
-	{
-		glm::vec3 direction;
-		glm::vec3 colour;
-	};
-
-	Light m_light;
+	
 	glm::vec3 m_ambientLight;
+
+	Scene* m_scene;
 };

@@ -1,7 +1,7 @@
 #pragma once
 #include <list>
 #include <glm/glm.hpp>
-
+// THIS IS AN EXPERIMENTAL CLASS, IT ALSO HAS NO AFFILIATION WITH THE 'SCENE' CLASS
 class SceneObject
 {
 public:
