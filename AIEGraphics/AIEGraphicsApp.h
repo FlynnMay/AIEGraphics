@@ -1,7 +1,8 @@
 #pragma once
-
 #include <glm/mat4x4.hpp>
 #include <list>
+#include <vector>
+#include "RenderTarget.h"
 #include "Application.h"
 #include "Shader.h"
 #include "Mesh.h"
@@ -33,6 +34,8 @@ protected:
 	aie::ShaderProgram m_texturedShader;
 	aie::ShaderProgram m_normalMapShader;
 	
+	aie::RenderTarget m_renderTarget;
+
 	aie::Texture m_gridTexture;
 	aie::Texture m_spearTexture;
 	aie::Texture m_ironManTexture;
@@ -55,7 +58,8 @@ protected:
 	//glm::mat4	m_projectionMatrix;
 
 	// camera
-	Camera* m_camera;
+	std::vector<Camera*> m_cameras;
+	int m_cameraIndex;
 
 	// other stuff
 	SceneObject* sun;

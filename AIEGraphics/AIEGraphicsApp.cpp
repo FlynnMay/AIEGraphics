@@ -37,18 +37,18 @@ bool AIEGraphicsApp::startup()
 	// initialise gizmo primitive counts
 	Gizmos::create(10000, 10000, 10000, 10000);
 
-
-
 	// create simple camera transforms
 	//m_viewMatrix = glm::lookAt(vec3(10), vec3(0), vec3(0, 1, 0));
 	//m_projectionMatrix = glm::perspective(glm::pi<float>() * 0.25f, getWindowWidth() / (float)getWindowHeight(), 0.1f, 1000.f);
 	Light light;
 	light.colour = { 2, 2, 2 };
 	m_ambientLight = { 0.25f, 0.25f, 0.25f };
-	m_camera = new FlyCamera();
-	m_camera->SetPosition({ -10,2,0 });
+	m_cameraIndex = 0;
+	m_cameras.push_back(new FlyCamera());
+	m_cameras.push_back(new Camera());
+	m_cameras[1]->SetPosition({-10,5,0});
 
-	m_scene = new Scene(m_camera, glm::vec2(getWindowWidth(), getWindowHeight()), light, m_ambientLight);
+	m_scene = new Scene(m_cameras[m_cameraIndex], glm::vec2(getWindowWidth(), getWindowHeight()), light, m_ambientLight);
 	m_scene->AddPointLights(glm::vec3(5, 3, 0), glm::vec3(1, 0, 0), 50);
 	m_scene->AddPointLights(glm::vec3(-5, 3, 0), glm::vec3(0, 0, 1), 50);
 
@@ -67,7 +67,6 @@ bool AIEGraphicsApp::startup()
 
 void AIEGraphicsApp::shutdown()
 {
-
 	Gizmos::destroy();
 }
 
@@ -118,9 +117,10 @@ void AIEGraphicsApp::update(float deltaTime)
 	if (input->isKeyDown(aie::INPUT_KEY_ESCAPE))
 		quit();
 
-	m_camera->Update(deltaTime);
+	m_cameras[m_cameraIndex]->Update(deltaTime);
 
 	ImGui::Begin("Light Settings");
+	
 	ImGui::DragFloat3("Sunlight Direction", &m_scene->GetGlobalLight().direction[0], 0.1f, -0.1f, 1.0f);
 	ImGui::DragFloat3("Sunlight Colour", &m_scene->GetGlobalLight().colour[0], 0.1f, 0.0f, 2.0f);
 	for (int i = 0; i < m_scene->GetLightCount(); i++)
@@ -129,18 +129,32 @@ void AIEGraphicsApp::update(float deltaTime)
 		ImGui::DragFloat3("Light Colour " + i, &m_scene->GetPointLights()[i].colour[0], 0.1f, 0.0f, 2.0f);
 	}
 	ImGui::End();
+
+	ImGui::Begin("Camera Settings");
+	ImGui::DragInt("Active Camera", &m_cameraIndex, 1, 0, m_cameras.size() - 1);
+	ImGui::Checkbox("Debug Camera", &m_cameras[m_cameraIndex]->m_debugMode);
+	ImGui::End();
+	m_scene->SetCamera(m_cameras[m_cameraIndex]);
 }
 
 void AIEGraphicsApp::draw()
 {
-
+	// we need to bind our render target first
+	//m_renderTarget.bind();
+	
 	// wipe the screen to the background colour
 	clearScreen();
 	m_scene->Draw();
 
+	for (int i = 0; i < m_cameras.size(); i++)
+	{
+		m_cameras[i]->Draw();
+	}
+
 	// update perspective based on screen size
-	glm::mat4 projectionMatrix = m_camera->GetProjectionMatrix(getWindowWidth(), getWindowHeight());
-	glm::mat4 viewMatrix = m_camera->GetViewMatrix();
+	glm::mat4 projectionMatrix = m_cameras[m_cameraIndex]->GetProjectionMatrix(getWindowWidth(), getWindowHeight());
+	glm::mat4 viewMatrix = m_cameras[m_cameraIndex]->GetViewMatrix();
+	auto pvm = projectionMatrix * viewMatrix * mat4(1);
 
 #pragma region Bunny
 
@@ -149,7 +163,7 @@ void AIEGraphicsApp::draw()
 	//=================
 	//m_modelTransform = m_bunnyTransform;
 	//m_phongShader.bind();
-	auto pvm = projectionMatrix * viewMatrix * m_modelTransform;
+	//pvm = projectionMatrix * viewMatrix * m_modelTransform;
 	//// Bind the transform
 	//m_phongShader.bindUniform("ProjectionViewModel", pvm);
 
@@ -199,9 +213,13 @@ void AIEGraphicsApp::draw()
 	m_texturedShader.bindUniform("diffuseTexture", 0);
 	m_gridTexture.bind(0);
 	// Draw the quad
-	//m_quadMesh.Draw();
 	//=================
 
+	//m_renderTarget.getTarget(0).bind(0);
+	//m_renderTarget.unbind();
+	//clearScreen();
+
+	m_quadMesh.Draw();
 
 	// PLANET ---REMOVE---
 
@@ -215,6 +233,12 @@ void AIEGraphicsApp::draw()
 
 bool AIEGraphicsApp::LaunchShader()
 {
+	if (!m_renderTarget.initialise(1, getWindowWidth(), getWindowHeight())) 
+	{
+		printf("[Render Target] Error!\n");
+		return false;
+	}
+
 #pragma region Shaders
 	m_shader.loadShader(aie::eShaderStage::VERTEX, "./shaders/simple.vert");
 	m_shader.loadShader(aie::eShaderStage::FRAGMENT, "./shaders/simple.frag");
@@ -333,18 +357,19 @@ bool AIEGraphicsApp::LaunchShader()
 	//m_quadMesh.Initialise(4, vertices, 6, indices);
 	//m_quadMesh.CreateGrid(2,2);
 
-	m_quadMesh.InitialiseQuad();
+	m_quadMesh.CreateGrid(2,2);
 	m_quadTransform = {
-		10,  0,  0,  0,
-		 0, 10,  0,  0,
-		 0,  0, 10,  0,
+		1,  0,  0,  0,
+		 0, 1,  0,  0,
+		 0,  0, 1,  0,
 		 0,  0,  0,  1
 	}; // This is 10 units large
 
-	for (int i = 0; i < 10; i++)
+	/*for (int i = 0; i < 10; i++)
 		m_scene->AddInstance(new Instance(glm::vec3(i * 2, 0, 0), glm::vec3(0, i * 30, i * 30), glm::vec3(1, 1, 1), &m_spearMesh, &m_normalMapShader));
 
 	for (int i = 0; i < 10; i++)
-		m_scene->AddInstance(new Instance(glm::vec3(i * 2, 0, 0), glm::vec3(0, 0, 0), glm::vec3(0.1f * i, 0.1f * i, 0.1f * i), &m_otherMesh, &m_normalMapShader));
+		m_scene->AddInstance(new Instance(glm::vec3(i * 2, 0, 0), glm::vec3(0, 0, 0), glm::vec3(0.1f * i, 0.1f * i, 0.1f * i), &m_otherMesh, &m_normalMapShader));*/
+
 	return true;
 }

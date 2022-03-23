@@ -16,7 +16,10 @@
     <Filter Include="Shaders">
       <UniqueIdentifier>{317cecb2-6f91-4ae2-b517-898ab6dd0b89}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\OBJ">
+    <Filter Include="Source Files\Provided">
+      <UniqueIdentifier>{09cbc1cd-405e-41ee-958a-8ce864b0cd7c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Provided">
       <UniqueIdentifier>{cdce9d00-8040-40ed-8fb4-607a6db77a37}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
@@ -33,15 +36,6 @@
     <ClCompile Include="SceneObject.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Mesh.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Shader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="OBJMesh.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Camera.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -53,6 +47,18 @@
     </ClCompile>
     <ClCompile Include="Scene.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="OBJMesh.cpp">
+      <Filter>Source Files\Provided</Filter>
+    </ClCompile>
+    <ClCompile Include="Shader.cpp">
+      <Filter>Source Files\Provided</Filter>
+    </ClCompile>
+    <ClCompile Include="Mesh.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderTarget.cpp">
+      <Filter>Source Files\Provided</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -66,12 +72,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Mesh.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Shader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="OBJMesh.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="tiny_obj_loader.h">
@@ -88,6 +88,15 @@
     </ClInclude>
     <ClInclude Include="Scene.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="OBJMesh.h">
+      <Filter>Header Files\Provided</Filter>
+    </ClInclude>
+    <ClInclude Include="Shader.h">
+      <Filter>Header Files\Provided</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderTarget.h">
+      <Filter>Header Files\Provided</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

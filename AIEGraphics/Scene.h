@@ -29,7 +29,8 @@ public:
 	void AddInstance(Instance* _instance);
 	void Draw();
 
-	Camera* GetMainCamera() { return m_camera; }
+	Camera* GetCamera() { return m_camera; }
+	void SetCamera(Camera* _camera) { m_camera = _camera; }
 	glm::vec2 GetWindowSize() { return m_windowSize; }
 	Light& GetGlobalLight() { return m_globalDirlight; }
 	glm::vec3 GetAmbientLight() { return m_ambientLight; }

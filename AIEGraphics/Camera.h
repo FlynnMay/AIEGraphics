@@ -8,6 +8,7 @@ public:
 	~Camera();
 
 	virtual void Update(float _dt);
+	virtual void Draw();
 	glm::mat4 GetViewMatrix();
 	glm::mat4 GetProjectionMatrix(float w, float h);
 
@@ -20,6 +21,8 @@ public:
 	glm::mat4 GetView();
 	glm::mat4 GetProjection();
 	glm::mat4 GetProjectionView();
+
+	bool m_debugMode;
 
 protected:
 	float m_theta;

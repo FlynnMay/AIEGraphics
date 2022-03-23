@@ -1,4 +1,5 @@
 #include "Camera.h"
+#include <Gizmos.h>
 #include <glm/ext.hpp>
 
 Camera::Camera()
@@ -6,6 +7,7 @@ Camera::Camera()
 	m_theta = 0;
 	m_phi = 0;
 	m_position = glm::vec3(0, 0, 0);
+	m_debugMode = false;
 }
 
 Camera::~Camera()
@@ -15,6 +17,14 @@ Camera::~Camera()
 void Camera::Update(float _dt)
 {
 	UpdateProjectionViewTransform();
+}
+
+void Camera::Draw()
+{
+	if (!m_debugMode)
+		return;
+
+	aie::Gizmos::addSphere(GetPosition(), 1.0f, 10, 10, { 1,0,0,1 });
 }
 
 glm::mat4 Camera::GetViewMatrix()
@@ -32,13 +42,12 @@ glm::mat4 Camera::GetProjectionMatrix(float w, float h)
 
 void Camera::SetPosition(const glm::vec3 _position)
 {
-	//m_worldTransform
-
+	m_position = _position;
 }
 
 glm::vec3 Camera::GetPosition()
 {
-	return glm::vec3();
+	return m_position;
 }
 
 void Camera::SetPerspective(float fieldOfView, float aspectRatio, float near, float far)
