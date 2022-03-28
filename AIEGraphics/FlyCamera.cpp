@@ -13,22 +13,22 @@ void FlyCamera::Update(float _dt)
 
 	// use the WASD, ZX keys to the move camera around
 	if (input->isKeyDown(aie::INPUT_KEY_X))
-		m_position += up * _dt;
+		m_position += up * m_speed * _dt;
 
 	if (input->isKeyDown(aie::INPUT_KEY_Z))
-		m_position += -up * _dt;
+		m_position += -up * m_speed * _dt;
 
 	if (input->isKeyDown(aie::INPUT_KEY_W))
-		m_position += forward * _dt;
+		m_position += forward * m_speed * _dt;
 
 	if (input->isKeyDown(aie::INPUT_KEY_S))
-		m_position += -forward * _dt;
+		m_position += -forward * m_speed * _dt;
 
 	if (input->isKeyDown(aie::INPUT_KEY_D))
-		m_position += right * _dt;
+		m_position += right * m_speed * _dt;
 
 	if (input->isKeyDown(aie::INPUT_KEY_A))
-		m_position += -right * _dt;
+		m_position += -right * m_speed * _dt;
 
 	// get the current mouse coordinates
 	float mx = input->getMouseX();

@@ -33,7 +33,10 @@ protected:
 	aie::ShaderProgram m_phongShader;
 	aie::ShaderProgram m_texturedShader;
 	aie::ShaderProgram m_normalMapShader;
+	aie::ShaderProgram m_postShader;
 	
+	int m_postProcessingTarget = 0;
+
 	aie::RenderTarget m_renderTarget;
 
 	aie::Texture m_gridTexture;
@@ -41,9 +44,11 @@ protected:
 	aie::Texture m_ironManTexture;
 
 	Mesh m_quadMesh;
+	Mesh m_screenQuad;
 	
 	glm::mat4 m_modelTransform;
 	glm::mat4 m_quadTransform;
+
 	aie::OBJMesh m_bunnyMesh;
 	glm::mat4 m_bunnyTransform;
 

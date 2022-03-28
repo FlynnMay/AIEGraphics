@@ -24,7 +24,7 @@ void Camera::Draw()
 	if (!m_debugMode)
 		return;
 
-	aie::Gizmos::addSphere(GetPosition(), 1.0f, 10, 10, { 1,0,0,1 });
+	aie::Gizmos::addSphere(GetPosition(), 0.1f, 10, 10, { 1,0,0,1 });
 }
 
 glm::mat4 Camera::GetViewMatrix()

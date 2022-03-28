@@ -22,9 +22,11 @@ public:
 	glm::mat4 GetProjection();
 	glm::mat4 GetProjectionView();
 
-	bool m_debugMode;
+	bool GetDebugMode() { return m_debugMode; }
+	void SetDebugMode(bool isDebugging) { m_debugMode = isDebugging; }
 
 protected:
+	bool m_debugMode;
 	float m_theta;
 	float m_phi;
 	glm::vec3 m_position;

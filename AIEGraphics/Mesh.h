@@ -14,6 +14,7 @@ public:
 	};
 
 	void InitialiseQuad();
+	void InitialiseFullScreenQuad();
 	void Initialise(unsigned int vertexCount, const Vertex* vertices, unsigned int indexCount = 0, unsigned int* indices = nullptr);
 	void CreateCube();
 	void CreatePyramid();

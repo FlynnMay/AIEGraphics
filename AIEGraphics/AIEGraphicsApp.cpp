@@ -6,6 +6,7 @@
 #include "Planet.h"
 #include "SceneObject.h"
 #include "FlyCamera.h"
+#include <string>
 #include <imgui.h>
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
@@ -42,6 +43,7 @@ bool AIEGraphicsApp::startup()
 	//m_projectionMatrix = glm::perspective(glm::pi<float>() * 0.25f, getWindowWidth() / (float)getWindowHeight(), 0.1f, 1000.f);
 	Light light;
 	light.colour = { 2, 2, 2 };
+	light.direction = { 1.0f, -0.1f, -0.1f };
 	m_ambientLight = { 0.25f, 0.25f, 0.25f };
 	m_cameraIndex = 0;
 	m_cameras.push_back(new FlyCamera());
@@ -125,22 +127,42 @@ void AIEGraphicsApp::update(float deltaTime)
 	ImGui::DragFloat3("Sunlight Colour", &m_scene->GetGlobalLight().colour[0], 0.1f, 0.0f, 2.0f);
 	for (int i = 0; i < m_scene->GetLightCount(); i++)
 	{
-		ImGui::DragFloat3("Light Direction " + i, &m_scene->GetPointLights()[i].direction[0], 0.1f, -0.1f, 1.0f);
-		ImGui::DragFloat3("Light Colour " + i, &m_scene->GetPointLights()[i].colour[0], 0.1f, 0.0f, 2.0f);
+		std::string dirString = "Light Direction ";
+		std::string colString = "Light Colour ";
+		
+		ImGui::DragFloat3(dirString.append(std::to_string(i + 1)).c_str(), &m_scene->GetPointLights()[i].direction[0], 0.1f, -0.1f, 1.0f);
+		ImGui::DragFloat3(colString.append(std::to_string(i + 1)).c_str(), &m_scene->GetPointLights()[i].colour[0], 0.1f, 0.0f, 2.0f);
 	}
 	ImGui::End();
 
+	FlyCamera* flyCam = dynamic_cast<FlyCamera*>(m_cameras[m_cameraIndex]);
+	bool debugMode = m_cameras[m_cameraIndex]->GetDebugMode();
+
 	ImGui::Begin("Camera Settings");
 	ImGui::DragInt("Active Camera", &m_cameraIndex, 1, 0, m_cameras.size() - 1);
-	ImGui::Checkbox("Debug Camera", &m_cameras[m_cameraIndex]->m_debugMode);
+	ImGui::Checkbox("Debug Camera", &debugMode);
+	
+	if (flyCam != nullptr)
+	{
+		float speed = flyCam->GetSpeed();
+		ImGui::DragFloat("FlyCam Speed", &speed, 1, 0, 10.0f);
+		flyCam->SetSpeed(speed);
+	}
+
 	ImGui::End();
+	m_cameras[m_cameraIndex]->SetDebugMode(debugMode);
 	m_scene->SetCamera(m_cameras[m_cameraIndex]);
+
+	ImGui::Begin("Post-Processing Settings");
+	ImGui::DragInt("Post-Processing Target", &m_postProcessingTarget, 0.1f, 0, 11);
+	ImGui::End();
+
 }
 
 void AIEGraphicsApp::draw()
 {
 	// we need to bind our render target first
-	//m_renderTarget.bind();
+	m_renderTarget.bind();
 	
 	// wipe the screen to the background colour
 	clearScreen();
@@ -215,20 +237,33 @@ void AIEGraphicsApp::draw()
 	// Draw the quad
 	//=================
 
-	//m_renderTarget.getTarget(0).bind(0);
-	//m_renderTarget.unbind();
-	//clearScreen();
+	m_gridTexture.bind(0);
 
 	m_quadMesh.Draw();
+	
+	m_texturedShader.bind();
+
 
 	// PLANET ---REMOVE---
-
 	//sun->Draw();
-
 	// -------------------
 
 	Gizmos::draw(projectionMatrix * viewMatrix);
 	Gizmos::draw2D((float)getWindowWidth(), (float)getWindowHeight());
+
+	// Unbind the target to return it to the back of the buffer
+	m_renderTarget.unbind();
+	clearScreen();
+
+	// Bind the post processing shader and texture
+	m_postShader.bind();
+	m_postShader.bindUniform("colourTarget", 0);
+	m_postShader.bindUniform("postProcessTarget", m_postProcessingTarget);
+	m_postShader.bindUniform("width", (int)getWindowWidth());
+	m_postShader.bindUniform("height", (int)getWindowHeight());
+
+	m_renderTarget.getTarget(0).bind(0);
+	m_screenQuad.Draw();
 }
 
 bool AIEGraphicsApp::LaunchShader()
@@ -251,6 +286,9 @@ bool AIEGraphicsApp::LaunchShader()
 
 	m_normalMapShader.loadShader(aie::eShaderStage::VERTEX, "./shaders/normalMap.vert");
 	m_normalMapShader.loadShader(aie::eShaderStage::FRAGMENT, "./shaders/normalMap.frag");
+
+	m_postShader.loadShader(aie::eShaderStage::VERTEX, "./shaders/advancedPost.vert");
+	m_postShader.loadShader(aie::eShaderStage::FRAGMENT, "./shaders/advancedPost.frag");
 
 	if (!m_shader.link())
 	{
@@ -276,9 +314,17 @@ bool AIEGraphicsApp::LaunchShader()
 		return false;
 	}
 
+	if (!m_postShader.link())
+	{
+		printf("[Post Processing] Shader Error: %s\n", m_postShader.getLastError());
+		return false;
+	}
+
 #pragma endregion
 
 #pragma region Mesh
+
+	m_screenQuad.InitialiseFullScreenQuad();
 
 	if (!m_bunnyMesh.load("./stanford/bunny.obj"))
 	{
@@ -302,7 +348,13 @@ bool AIEGraphicsApp::LaunchShader()
 
 #pragma region Texture
 
-	if (!m_gridTexture.load("./textures/numbered_grid.tga"))
+	/*if (!m_gridTexture.load("./textures/numbered_grid.tga"))
+	{
+		printf("Failed to load the grid texture, please check file path!\n");
+		return false;
+	}*/
+
+	if (!m_gridTexture.load("./Sobel.png"))
 	{
 		printf("Failed to load the grid texture, please check file path!\n");
 		return false;
@@ -357,19 +409,19 @@ bool AIEGraphicsApp::LaunchShader()
 	//m_quadMesh.Initialise(4, vertices, 6, indices);
 	//m_quadMesh.CreateGrid(2,2);
 
-	m_quadMesh.CreateGrid(2,2);
+	m_quadMesh.InitialiseQuad();
 	m_quadTransform = {
-		1,  0,  0,  0,
-		 0, 1,  0,  0,
-		 0,  0, 1,  0,
+		10,  0,  0,  0,
+		 0, 10,  0,  0,
+		 0,  0, 10,  0,
 		 0,  0,  0,  1
 	}; // This is 10 units large
 
-	/*for (int i = 0; i < 10; i++)
+	for (int i = 0; i < 10; i++)
 		m_scene->AddInstance(new Instance(glm::vec3(i * 2, 0, 0), glm::vec3(0, i * 30, i * 30), glm::vec3(1, 1, 1), &m_spearMesh, &m_normalMapShader));
 
 	for (int i = 0; i < 10; i++)
-		m_scene->AddInstance(new Instance(glm::vec3(i * 2, 0, 0), glm::vec3(0, 0, 0), glm::vec3(0.1f * i, 0.1f * i, 0.1f * i), &m_otherMesh, &m_normalMapShader));*/
+		m_scene->AddInstance(new Instance(glm::vec3(i * 2, 0, 0), glm::vec3(0, 0, 0), glm::vec3(0.1f * i, 0.1f * i, 0.1f * i), &m_otherMesh, &m_normalMapShader));
 
 	return true;
 }
