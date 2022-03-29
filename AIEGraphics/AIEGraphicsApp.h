@@ -11,6 +11,7 @@
 
 class Scene;
 class SceneObject;
+class ParticleEmitter;
 class AIEGraphicsApp : public aie::Application {
 public:
 
@@ -28,12 +29,14 @@ protected:
 
 	bool LaunchShader();
 
+	ParticleEmitter* m_emitter;
 
 	aie::ShaderProgram m_shader;
 	aie::ShaderProgram m_phongShader;
 	aie::ShaderProgram m_texturedShader;
 	aie::ShaderProgram m_normalMapShader;
 	aie::ShaderProgram m_postShader;
+	aie::ShaderProgram m_particleShader;
 	
 	int m_postProcessingTarget = 0;
 
@@ -45,6 +48,7 @@ protected:
 
 	Mesh m_quadMesh;
 	Mesh m_screenQuad;
+
 	
 	glm::mat4 m_modelTransform;
 	glm::mat4 m_quadTransform;
@@ -58,6 +62,7 @@ protected:
 	aie::OBJMesh m_otherMesh;
 	glm::mat4 m_otherTransform;
 
+	glm::mat4 m_particleTransform;
 	// camera transforms
 	//glm::mat4	m_viewMatrix;
 	//glm::mat4	m_projectionMatrix;

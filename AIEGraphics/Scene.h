@@ -29,6 +29,8 @@ public:
 	void AddInstance(Instance* _instance);
 	void Draw();
 
+	std::list<Instance*> GetInstances() { return m_instances; }
+	void SetInstances(std::list<Instance*> _instances) { m_instances = _instances; }
 	Camera* GetCamera() { return m_camera; }
 	void SetCamera(Camera* _camera) { m_camera = _camera; }
 	glm::vec2 GetWindowSize() { return m_windowSize; }

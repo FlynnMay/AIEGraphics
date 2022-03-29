@@ -21,6 +21,9 @@ public:
 	void Draw(Scene* _scene);
 
 	static glm::mat4 MakeTransform(glm::vec3 _positon, glm::vec3 _eulerAngles, glm::vec3 _scale);
+	glm::vec3 GetPosition() { return m_transform[3]; }
+	glm::mat4 GetTransform() { return m_transform; }
+	void SetTransform(glm::mat4 _transform) { m_transform = _transform; }
 
 protected:
 	glm::mat4 m_transform;

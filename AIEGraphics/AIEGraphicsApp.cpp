@@ -6,10 +6,12 @@
 #include "Planet.h"
 #include "SceneObject.h"
 #include "FlyCamera.h"
+#include "ParticleEmitter.h"
 #include <string>
 #include <imgui.h>
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/euler_angles.hpp>
 #include <glm/gtx/quaternion.hpp>
@@ -56,6 +58,9 @@ bool AIEGraphicsApp::startup()
 
 	LaunchShader();
 
+	m_emitter = new ParticleEmitter();
+	m_emitter->Initialise(1000, 500, 0.1f, 1.0f, 1, 5, 1, 0.1f, glm::vec4(1, 0, 0, 1), glm::vec4(1, 1, 0, 1));
+	
 	// PLANET ---REMOVE---
 	//sun = new Planet(glm::vec3(0, 0, 0), 1.0f, RotationDirection::CLOCKWISE, glm::vec4(.75f, 0.15f, 0.75f, 1.0f));
 	//earth = new Planet(glm::vec3(2, 0, 0), 0.8f, RotationDirection::CLOCKWISE, glm::vec4(0, 0.15f, 0.75f, 1.0f));
@@ -113,6 +118,8 @@ void AIEGraphicsApp::update(float deltaTime)
 	//// Rotate the light
 	//m_light.direction = glm::normalize(glm::vec3(glm::cos(time * 2), glm::sin(time * 2), 0.0f));
 
+	m_emitter->Update(deltaTime, m_cameras[m_cameraIndex]->GetProjectionMatrix(getWindowWidth(), getWindowHeight()));
+
 	// quit if we press escape
 	aie::Input* input = aie::Input::getInstance();
 
@@ -157,6 +164,31 @@ void AIEGraphicsApp::update(float deltaTime)
 	ImGui::DragInt("Post-Processing Target", &m_postProcessingTarget, 0.1f, 0, 11);
 	ImGui::End();
 
+	ImGui::Begin("Instances");
+	int i = 0;
+	std::list<Instance*> instances = m_scene->GetInstances();
+	for (auto it = instances.begin(); it != instances.end(); it++)
+	{
+		std::string iString = std::to_string(i);
+		std::string headerName = iString;
+		headerName.append(": Instance");
+		const ImVec2 border = ImVec2(0, 0);
+		ImGui::BeginGroup();
+		if (ImGui::CollapsingHeader(headerName.c_str()))
+		{
+			Instance* inst = *it;
+			float pos[] = { inst->GetPosition().x, inst->GetPosition().y, inst->GetPosition().z };
+			//std::string posStrin
+			ImGui::DragFloat3((std::string("Postition##").append(iString)).c_str(), pos, 0.1f);
+			float rot[] = { inst->GetPosition().x, inst->GetPosition().y, inst->GetPosition().z };
+			//ImGui::DragFloat3("Rotation", rot, 0.1f);			
+			inst->SetTransform(inst->MakeTransform(glm::make_vec3(pos), { 0,0,0 }, { 1,1,1 }));
+		}
+		ImGui::EndGroup();
+		i++;
+	}
+	m_scene->SetInstances(instances);
+	ImGui::End();
 }
 
 void AIEGraphicsApp::draw()
@@ -177,6 +209,12 @@ void AIEGraphicsApp::draw()
 	glm::mat4 projectionMatrix = m_cameras[m_cameraIndex]->GetProjectionMatrix(getWindowWidth(), getWindowHeight());
 	glm::mat4 viewMatrix = m_cameras[m_cameraIndex]->GetViewMatrix();
 	auto pvm = projectionMatrix * viewMatrix * mat4(1);
+
+	// Particles
+	pvm = projectionMatrix * viewMatrix * m_particleTransform;
+	m_particleShader.bind();
+	m_particleShader.bindUniform("ProjectionViewModel", pvm);
+	m_emitter->Draw();
 
 #pragma region Bunny
 
@@ -290,6 +328,9 @@ bool AIEGraphicsApp::LaunchShader()
 	m_postShader.loadShader(aie::eShaderStage::VERTEX, "./shaders/advancedPost.vert");
 	m_postShader.loadShader(aie::eShaderStage::FRAGMENT, "./shaders/advancedPost.frag");
 
+	m_particleShader.loadShader(aie::eShaderStage::VERTEX, "./shaders/particle.vert");
+	m_particleShader.loadShader(aie::eShaderStage::FRAGMENT, "./shaders/particle.frag");
+
 	if (!m_shader.link())
 	{
 		printf("[Simple] Shader Error: %s\n", m_shader.getLastError());
@@ -317,6 +358,12 @@ bool AIEGraphicsApp::LaunchShader()
 	if (!m_postShader.link())
 	{
 		printf("[Post Processing] Shader Error: %s\n", m_postShader.getLastError());
+		return false;
+	}
+
+	if (!m_particleShader.link())
+	{
+		printf("[Particle] Shader Error: %s\n", m_particleShader.getLastError());
 		return false;
 	}
 
@@ -388,6 +435,13 @@ bool AIEGraphicsApp::LaunchShader()
 		0,0,0,1.0f
 	};
 
+	m_particleTransform = {
+		1.0f,0,0,0,
+		0,1.0f,0,0,
+		0,0,1.0f,0,
+		0,0,0,1.0f
+	};
+
 	m_otherTransform = {
 		0.01f,0,0,0,
 		0,0.01f,0,0,
@@ -417,11 +471,11 @@ bool AIEGraphicsApp::LaunchShader()
 		 0,  0,  0,  1
 	}; // This is 10 units large
 
-	for (int i = 0; i < 10; i++)
-		m_scene->AddInstance(new Instance(glm::vec3(i * 2, 0, 0), glm::vec3(0, i * 30, i * 30), glm::vec3(1, 1, 1), &m_spearMesh, &m_normalMapShader));
+	//for (int i = 0; i < 10; i++)
+		//m_scene->AddInstance(new Instance(glm::vec3(i * 2, 0, 0), glm::vec3(0, i * 30, i * 30), glm::vec3(1, 1, 1), &m_spearMesh, &m_normalMapShader));
 
-	for (int i = 0; i < 10; i++)
-		m_scene->AddInstance(new Instance(glm::vec3(i * 2, 0, 0), glm::vec3(0, 0, 0), glm::vec3(0.1f * i, 0.1f * i, 0.1f * i), &m_otherMesh, &m_normalMapShader));
+	//for (int i = 0; i < 10; i++)
+		//m_scene->AddInstance(new Instance(glm::vec3(i * 2, 0, 0), glm::vec3(0, 0, 0), glm::vec3(0.1f * i, 0.1f * i, 0.1f * i), &m_otherMesh, &m_normalMapShader));
 
 	return true;
 }
