@@ -118,7 +118,8 @@ void AIEGraphicsApp::update(float deltaTime)
 	//// Rotate the light
 	//m_light.direction = glm::normalize(glm::vec3(glm::cos(time * 2), glm::sin(time * 2), 0.0f));
 
-	m_emitter->Update(deltaTime, m_cameras[m_cameraIndex]->GetProjectionMatrix(getWindowWidth(), getWindowHeight()));
+	// particles
+	m_emitter->Update(deltaTime, m_cameras[m_cameraIndex]->GetTransform(m_cameras[m_cameraIndex]->GetPosition(), {0,0,0}, {1,1,1}));
 
 	// quit if we press escape
 	aie::Input* input = aie::Input::getInstance();
@@ -146,7 +147,7 @@ void AIEGraphicsApp::update(float deltaTime)
 	bool debugMode = m_cameras[m_cameraIndex]->GetDebugMode();
 
 	ImGui::Begin("Camera Settings");
-	ImGui::DragInt("Active Camera", &m_cameraIndex, 1, 0, m_cameras.size() - 1);
+	ImGui::DragInt("Active Camera", &m_cameraIndex, 0.1f, 0, m_cameras.size() - 1);
 	ImGui::Checkbox("Debug Camera", &debugMode);
 	
 	if (flyCam != nullptr)
@@ -177,12 +178,34 @@ void AIEGraphicsApp::update(float deltaTime)
 		if (ImGui::CollapsingHeader(headerName.c_str()))
 		{
 			Instance* inst = *it;
+			auto transform = inst->GetTransform();
+			
+			// Position
 			float pos[] = { inst->GetPosition().x, inst->GetPosition().y, inst->GetPosition().z };
+			
+			// Rotation
+			glm::quat quaternion = glm::quat_cast(inst->GetTransform());
+			glm::vec3 euler = glm::eulerAngles(quaternion);
+			float eulerRot[] = { euler.x, euler.y, euler.z };
+			
+			// Scale
+			glm::vec3 col1(transform[0][0], transform[1][0], transform[2][0]);
+			glm::vec3 col2(transform[0][1], transform[1][1], transform[2][1]);
+			glm::vec3 col3(transform[0][2], transform[1][2], transform[2][2]);
+			
+			float scaleX = glm::length(col1);
+			float scaleY = glm::length(col2);
+			float scaleZ = glm::length(col3);
+
+			float scale[] = {scaleX, scaleY, scaleZ};
+
 			//std::string posStrin
 			ImGui::DragFloat3((std::string("Postition##").append(iString)).c_str(), pos, 0.1f);
-			float rot[] = { inst->GetPosition().x, inst->GetPosition().y, inst->GetPosition().z };
+			ImGui::DragFloat3((std::string("Rotation##").append(iString)).c_str(), eulerRot, 0.1f);
+			ImGui::DragFloat3((std::string("Scale##").append(iString)).c_str(), scale, 0.1f);
+
 			//ImGui::DragFloat3("Rotation", rot, 0.1f);			
-			inst->SetTransform(inst->MakeTransform(glm::make_vec3(pos), { 0,0,0 }, { 1,1,1 }));
+			inst->SetTransform(inst->MakeTransform(glm::make_vec3(pos), glm::make_vec3(eulerRot), glm::make_vec3(scale)));
 		}
 		ImGui::EndGroup();
 		i++;
@@ -209,12 +232,6 @@ void AIEGraphicsApp::draw()
 	glm::mat4 projectionMatrix = m_cameras[m_cameraIndex]->GetProjectionMatrix(getWindowWidth(), getWindowHeight());
 	glm::mat4 viewMatrix = m_cameras[m_cameraIndex]->GetViewMatrix();
 	auto pvm = projectionMatrix * viewMatrix * mat4(1);
-
-	// Particles
-	pvm = projectionMatrix * viewMatrix * m_particleTransform;
-	m_particleShader.bind();
-	m_particleShader.bindUniform("ProjectionViewModel", pvm);
-	m_emitter->Draw();
 
 #pragma region Bunny
 
@@ -285,6 +302,12 @@ void AIEGraphicsApp::draw()
 	// PLANET ---REMOVE---
 	//sun->Draw();
 	// -------------------
+
+	// Particles
+	pvm = projectionMatrix * viewMatrix * m_particleTransform;
+	m_particleShader.bind();
+	m_particleShader.bindUniform("ProjectionViewModel", pvm);
+	m_emitter->Draw();
 
 	Gizmos::draw(projectionMatrix * viewMatrix);
 	Gizmos::draw2D((float)getWindowWidth(), (float)getWindowHeight());
@@ -471,11 +494,11 @@ bool AIEGraphicsApp::LaunchShader()
 		 0,  0,  0,  1
 	}; // This is 10 units large
 
-	//for (int i = 0; i < 10; i++)
-		//m_scene->AddInstance(new Instance(glm::vec3(i * 2, 0, 0), glm::vec3(0, i * 30, i * 30), glm::vec3(1, 1, 1), &m_spearMesh, &m_normalMapShader));
+	for (int i = 0; i < 10; i++)
+		m_scene->AddInstance(new Instance(glm::vec3(i * 2, 0, 0), glm::vec3(0, i * 30, i * 30), glm::vec3(1, 1, 1), &m_spearMesh, &m_normalMapShader));
 
-	//for (int i = 0; i < 10; i++)
-		//m_scene->AddInstance(new Instance(glm::vec3(i * 2, 0, 0), glm::vec3(0, 0, 0), glm::vec3(0.1f * i, 0.1f * i, 0.1f * i), &m_otherMesh, &m_normalMapShader));
+	for (int i = 0; i < 10; i++)
+		m_scene->AddInstance(new Instance(glm::vec3(i * 2, 0, 0), glm::vec3(0, 0, 0), glm::vec3(0.1f * i, 0.1f * i, 0.1f * i), &m_otherMesh, &m_normalMapShader));
 
 	return true;
 }

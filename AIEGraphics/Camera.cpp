@@ -1,6 +1,7 @@
 #include "Camera.h"
 #include <Gizmos.h>
 #include <glm/ext.hpp>
+#include <glm/glm.hpp>
 
 Camera::Camera()
 {
@@ -82,6 +83,15 @@ glm::mat4 Camera::GetProjection()
 glm::mat4 Camera::GetProjectionView()
 {
 	return m_projectionViewTransform;
+}
+
+glm::mat4 Camera::GetTransform(glm::vec3 _position, glm::vec3 _euler, glm::vec3 _scale)
+{
+	return glm::translate(glm::mat4(1), _position)
+		* glm::rotate(glm::mat4(1), glm::radians(_euler.z), glm::vec3(0, 0, 1))
+		* glm::rotate(glm::mat4(1), glm::radians(_euler.y), glm::vec3(0, 1, 0))
+		* glm::rotate(glm::mat4(1), glm::radians(_euler.x), glm::vec3(1, 0, 0))
+		* glm::scale(glm::mat4(1), _scale);
 }
 
 void Camera::UpdateProjectionViewTransform()

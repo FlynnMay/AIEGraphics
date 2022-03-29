@@ -21,7 +21,7 @@ public:
 	glm::mat4 GetView();
 	glm::mat4 GetProjection();
 	glm::mat4 GetProjectionView();
-
+	glm::mat4 GetTransform(glm::vec3 _position, glm::vec3 _euler, glm::vec3 _scale);
 	bool GetDebugMode() { return m_debugMode; }
 	void SetDebugMode(bool isDebugging) { m_debugMode = isDebugging; }
 

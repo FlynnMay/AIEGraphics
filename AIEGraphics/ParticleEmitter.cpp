@@ -157,7 +157,7 @@ void ParticleEmitter::Update(float _dt, const glm::mat4& _cameraTransform)
 
 			// create billboard transform
 			glm::vec3 zAxis = glm::normalize(glm::vec3(_cameraTransform[3]) - particle->position);
-			glm::vec3 xAxis = glm::cross(glm::vec3(_cameraTransform[3]), zAxis);
+			glm::vec3 xAxis = glm::cross(glm::vec3(_cameraTransform[1]), zAxis);
 			glm::vec3 yAxis = glm::cross(zAxis, xAxis);
 			glm::mat4 billboard(
 				glm::vec4(xAxis, 0),
