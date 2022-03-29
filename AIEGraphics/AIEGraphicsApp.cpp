@@ -163,6 +163,8 @@ void AIEGraphicsApp::update(float deltaTime)
 
 	ImGui::Begin("Post-Processing Settings");
 	ImGui::DragInt("Post-Processing Target", &m_postProcessingTarget, 0.1f, 0, 11);
+	if (m_postProcessingTarget == 8)
+		ImGui::DragInt("Pixel Strength", &m_pixelStrength, 0.1f, 0, 255);
 	ImGui::End();
 
 	ImGui::Begin("Instances");
@@ -322,6 +324,7 @@ void AIEGraphicsApp::draw()
 	m_postShader.bindUniform("postProcessTarget", m_postProcessingTarget);
 	m_postShader.bindUniform("width", (int)getWindowWidth());
 	m_postShader.bindUniform("height", (int)getWindowHeight());
+	m_postShader.bindUniform("pixelateStrength", m_pixelStrength);
 
 	m_renderTarget.getTarget(0).bind(0);
 	m_screenQuad.Draw();

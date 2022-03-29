@@ -7,6 +7,7 @@ uniform sampler2D colourTarget;
 uniform int postProcessTarget;
 uniform int width;
 uniform int height;
+uniform int pixelateStrength;
 
 out vec4 FragColor;
 
@@ -93,7 +94,7 @@ vec4 Invert(vec2 texCoord){
 }
 
 vec4 Pixelate(vec2 texCoord){
-    vec2 grid_uv = round(texCoord * float(200)) / float(200);
+    vec2 grid_uv = round(texCoord * float(pixelateStrength)) / float(pixelateStrength);
     vec4 baseColour = texture(colourTarget, grid_uv);
     return baseColour;
 }

@@ -80,6 +80,7 @@ protected:
 	float m_speed = 10.0f;
 	float m_rotationSpeed = 45.0f;
 	float m_rotation = 0.0f;
+	int m_pixelStrength = 1;
 	glm::vec3 m_position = glm::vec3(0);
 	
 	glm::vec3 m_ambientLight;
