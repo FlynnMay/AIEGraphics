@@ -240,32 +240,32 @@ void AIEGraphicsApp::draw()
 	//=================
 	// Bunny
 	//=================
-	m_modelTransform = m_bunnyTransform;
-	m_phongShader.bind();
-	pvm = projectionMatrix * viewMatrix * m_modelTransform;
-	//// Bind the transform
-	m_phongShader.bindUniform("ProjectionViewModel", pvm);
+	//m_modelTransform = m_bunnyTransform;
+	//m_phongShader.bind();
+	//pvm = projectionMatrix * viewMatrix * m_modelTransform;
+	////// Bind the transform
+	//m_phongShader.bindUniform("ProjectionViewModel", pvm);
 
 
-	// Bind light
-	m_phongShader.bindUniform("AmbientColour", m_ambientLight);
-	m_phongShader.bindUniform("LightColour", m_scene->GetGlobalLight().colour);
-	m_phongShader.bindUniform("LightDirection", m_scene->GetGlobalLight().direction);
-	m_phongShader.bindUniform("cameraPosition", m_cameras[m_cameraIndex]->GetPosition());
+	//// Bind light
+	//m_phongShader.bindUniform("AmbientColour", m_ambientLight);
+	//m_phongShader.bindUniform("LightColour", m_scene->GetGlobalLight().colour);
+	//m_phongShader.bindUniform("LightDirection", m_scene->GetGlobalLight().direction);
+	//m_phongShader.bindUniform("cameraPosition", m_cameras[m_cameraIndex]->GetPosition());
 
-	//// Simple binding for lightind data based on model use
-	m_phongShader.bindUniform("ModelMatrix", m_modelTransform);
+	////// Simple binding for lightind data based on model use
+	//m_phongShader.bindUniform("ModelMatrix", m_modelTransform);
 
-	m_marbleTexture.bind(0);
-	m_phongShader.bindUniform("SeamlessTexture", 0);
+	//m_marbleTexture.bind(0);
+	//m_phongShader.bindUniform("SeamlessTexture", 0);
 
-	m_hatchingTexture.bind(1);
-	m_phongShader.bindUniform("HatchingTexture", 1);
+	//m_hatchingTexture.bind(1);
+	//m_phongShader.bindUniform("HatchingTexture", 1);
 
-	m_rampTexture.bind(2);
-	m_phongShader.bindUniform("RampTexture", 2);
-	// Draw mesh
-	m_bunnyMesh.draw();
+	//m_rampTexture.bind(2);
+	//m_phongShader.bindUniform("RampTexture", 2);
+	//// Draw mesh
+	//m_bunnyMesh.draw();
 	//=================
 
 #pragma endregion
@@ -523,14 +523,14 @@ bool AIEGraphicsApp::LaunchShader()
 		 0,  0,  0,  1
 	}; // This is 10 units large
 
-	//for (int i = 0; i < 10; i++)
-	//	m_scene->AddInstance(new Instance(glm::vec3(i * 2, 0, 0), glm::vec3(0, i * 30, i * 30), glm::vec3(1, 1, 1), &m_spearMesh, &m_normalMapShader));
+	for (int i = 0; i < 10; i++)
+		m_scene->AddInstance(new Instance(glm::vec3(i * 2, 0, 0), glm::vec3(0, i * 30, i * 30), glm::vec3(1, 1, 1), &m_spearMesh, &m_normalMapShader));
 
-	//for (int i = 0; i < 10; i++)
-	//	m_scene->AddInstance(new Instance(glm::vec3(i * 2, 0, 0), glm::vec3(0, 0, 0), glm::vec3(0.1f * i, 0.1f * i, 0.1f * i), &m_otherMesh, &m_normalMapShader));
+	for (int i = 0; i < 10; i++)
+		m_scene->AddInstance(new Instance(glm::vec3(i * 2, 0, 0), glm::vec3(0, 0, 0), glm::vec3(0.1f * i, 0.1f * i, 0.1f * i), &m_otherMesh, &m_normalMapShader));
 
-	//for (int i = 0; i < 10; i++)
-	//	m_scene->AddInstance(new Instance(glm::vec3(i * 2, 0, 30), glm::vec3(0, 0, 0), glm::vec3(1, 1, 1), &m_bunnyMesh, &m_normalMapShader));
+	for (int i = 0; i < 10; i++)
+		m_scene->AddInstance(new Instance(glm::vec3(i * 2, 0, 30), glm::vec3(0, 0, 0), glm::vec3(1, 1, 1), &m_bunnyMesh, &m_normalMapShader));
 
 	return true;
 }

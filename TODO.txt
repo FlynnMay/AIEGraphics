@@ -1,0 +1,51 @@
+OpenGL Project:
+
+C++ Computer Graphics Assessment
+
+ 
+
+Models
+[x] 1. Implement the Soulspear Model provided with specular, normal and base textures.
+[x] 2. Implement a sourced moedl you found which has specular, normal and base textures.
+[x] 3. Implement at least one of the Stanford models provided.
+[.] 4. ImGUI must be used to allow you to move, scale and rotate your models.
+[x] 5. Implement and ensure all models can be correctly effect by the lights in your scene.
+
+ 
+
+Lights
+[ ] 1. Implement a point light that constantly moves in a figure eight (8) motion.
+[ ] 2. Implement at least two (2) other point lights that can move moved via ImGUI.
+[ ] 3. ImGUI must be used to allow you to change the color of each point light individually.
+[ ] 4. Use a Sphere Gizmo to represent the point lights in 3D space, the color of the Gizmo needs to match the light.
+
+ 
+
+Camera
+[ ] 1. a Fly Camera must be created to allow a user to manuver around the scene.
+[ ] 2. a Stationary Camear must be implemented in each axis.
+[ ] 3. ImGUI must be used in order for a user to switch between active cameras.
+[ ] 4. Use a Cylinder and a Transform to represent the location of your cameras, color code them to tell them apart.
+
+ 
+
+Post-Processing
+[ ] 1. Implement at least five (5) working Post-Processing techniques.
+[ ] 2. ImGUI must be used to let you navigate between active Post-Processing techniques and a default option.
+
+ 
+
+Particle System
+[ ] 1. Implement at least one Particle System that can be activated and deactived via ImGUI and use the constantly moving point light's position and color for it's own.
+[ ] 2. ImGUI must be implemented to control the Particle System.
+
+ 
+
+Extension
+[ ] 1. Implement an orbital camera that can target a model or the center of the scene.
+[ ] 2. Allow the orbital camera to change targets via ImGUI.
+[ ] 3. Implement and use your various custom meshes.
+[ ] 4. Have Post-Processing work on a per-camera basis.
+[ ] 5. Research and implement at least twelve (12) working Post-Processing techniques.
+[ ] 6. Research and implement your Particle System to work via the GPU.
+[ ] 7. Research and implement a system that allows the user to instance a new model in the scene via ImGUI
