@@ -240,24 +240,32 @@ void AIEGraphicsApp::draw()
 	//=================
 	// Bunny
 	//=================
-	//m_modelTransform = m_bunnyTransform;
-	//m_phongShader.bind();
-	//pvm = projectionMatrix * viewMatrix * m_modelTransform;
+	m_modelTransform = m_bunnyTransform;
+	m_phongShader.bind();
+	pvm = projectionMatrix * viewMatrix * m_modelTransform;
 	//// Bind the transform
-	//m_phongShader.bindUniform("ProjectionViewModel", pvm);
+	m_phongShader.bindUniform("ProjectionViewModel", pvm);
 
 
-	//// Bind light
-	//m_phongShader.bindUniform("AmbientColour", m_ambientLight);
-	//m_phongShader.bindUniform("LightColour", m_light.colour);
-	//m_phongShader.bindUniform("LightDirection", m_light.direction);
-	//m_phongShader.bindUniform("cameraPosition", m_camera->GetPosition());
+	// Bind light
+	m_phongShader.bindUniform("AmbientColour", m_ambientLight);
+	m_phongShader.bindUniform("LightColour", m_scene->GetGlobalLight().colour);
+	m_phongShader.bindUniform("LightDirection", m_scene->GetGlobalLight().direction);
+	m_phongShader.bindUniform("cameraPosition", m_cameras[m_cameraIndex]->GetPosition());
 
 	//// Simple binding for lightind data based on model use
-	//m_phongShader.bindUniform("ModelMatrix", m_modelTransform);
+	m_phongShader.bindUniform("ModelMatrix", m_modelTransform);
 
-	//// Draw mesh
-	//m_bunnyMesh.draw();
+	m_marbleTexture.bind(0);
+	m_phongShader.bindUniform("SeamlessTexture", 0);
+
+	m_hatchingTexture.bind(1);
+	m_phongShader.bindUniform("HatchingTexture", 1);
+
+	m_rampTexture.bind(2);
+	m_phongShader.bindUniform("RampTexture", 2);
+	// Draw mesh
+	m_bunnyMesh.draw();
 	//=================
 
 #pragma endregion
@@ -305,11 +313,11 @@ void AIEGraphicsApp::draw()
 	//sun->Draw();
 	// -------------------
 
-	// Particles
-	pvm = projectionMatrix * viewMatrix * m_particleTransform;
-	m_particleShader.bind();
-	m_particleShader.bindUniform("ProjectionViewModel", pvm);
-	m_emitter->Draw();
+	//// Particles
+	//pvm = projectionMatrix * viewMatrix * m_particleTransform;
+	//m_particleShader.bind();
+	//m_particleShader.bindUniform("ProjectionViewModel", pvm);
+	//m_emitter->Draw();
 
 	Gizmos::draw(projectionMatrix * viewMatrix);
 	Gizmos::draw2D((float)getWindowWidth(), (float)getWindowHeight());
@@ -342,8 +350,8 @@ bool AIEGraphicsApp::LaunchShader()
 	m_shader.loadShader(aie::eShaderStage::VERTEX, "./shaders/simple.vert");
 	m_shader.loadShader(aie::eShaderStage::FRAGMENT, "./shaders/simple.frag");
 
-	m_phongShader.loadShader(aie::eShaderStage::VERTEX, "./shaders/phong.vert");
-	m_phongShader.loadShader(aie::eShaderStage::FRAGMENT, "./shaders/phong.frag");
+	m_phongShader.loadShader(aie::eShaderStage::VERTEX, "./shaders/phongExt.vert");
+	m_phongShader.loadShader(aie::eShaderStage::FRAGMENT, "./shaders/phongExt.frag");
 
 	m_texturedShader.loadShader(aie::eShaderStage::VERTEX, "./shaders/textured.vert");
 	m_texturedShader.loadShader(aie::eShaderStage::FRAGMENT, "./shaders/textured.frag");
@@ -433,6 +441,24 @@ bool AIEGraphicsApp::LaunchShader()
 		return false;
 	}
 
+	if (!m_marbleTexture.load("./textures/marble2.jpg"))
+	{
+		printf("Failed to load the marble texture, please check file path!\n");
+		return false;
+	}
+
+	if (!m_hatchingTexture.load("./textures/Ramp02.png"))
+	{
+		printf("Failed to load the hatching texture, please check file path!\n");
+		return false;
+	}
+
+	if (!m_rampTexture.load("./textures/ramps.png", true))
+	{
+		printf("Failed to load the hatching texture, please check file path!\n");
+		return false;
+	}
+
 	//if (!m_spearTexture.load("./soulspear/soulspear_diffuse.tga"))
 	//{
 	//	printf("Failed to load the spear texture, please check file path!\n");
@@ -448,9 +474,9 @@ bool AIEGraphicsApp::LaunchShader()
 #pragma endregion
 
 	m_bunnyTransform = {
-		0.05f,0,0,0,
-		0,0.05f,0,0,
-		0,0,0.05f,0,
+		1.0f,0,0,0,
+		0,1.0f,0,0,
+		0,0,1.0f,0,
 		0,0,0,1
 	};
 
@@ -497,11 +523,14 @@ bool AIEGraphicsApp::LaunchShader()
 		 0,  0,  0,  1
 	}; // This is 10 units large
 
-	for (int i = 0; i < 10; i++)
-		m_scene->AddInstance(new Instance(glm::vec3(i * 2, 0, 0), glm::vec3(0, i * 30, i * 30), glm::vec3(1, 1, 1), &m_spearMesh, &m_normalMapShader));
+	//for (int i = 0; i < 10; i++)
+	//	m_scene->AddInstance(new Instance(glm::vec3(i * 2, 0, 0), glm::vec3(0, i * 30, i * 30), glm::vec3(1, 1, 1), &m_spearMesh, &m_normalMapShader));
 
-	for (int i = 0; i < 10; i++)
-		m_scene->AddInstance(new Instance(glm::vec3(i * 2, 0, 0), glm::vec3(0, 0, 0), glm::vec3(0.1f * i, 0.1f * i, 0.1f * i), &m_otherMesh, &m_normalMapShader));
+	//for (int i = 0; i < 10; i++)
+	//	m_scene->AddInstance(new Instance(glm::vec3(i * 2, 0, 0), glm::vec3(0, 0, 0), glm::vec3(0.1f * i, 0.1f * i, 0.1f * i), &m_otherMesh, &m_normalMapShader));
+
+	//for (int i = 0; i < 10; i++)
+	//	m_scene->AddInstance(new Instance(glm::vec3(i * 2, 0, 30), glm::vec3(0, 0, 0), glm::vec3(1, 1, 1), &m_bunnyMesh, &m_normalMapShader));
 
 	return true;
 }

@@ -44,7 +44,11 @@ protected:
 
 	aie::Texture m_gridTexture;
 	aie::Texture m_spearTexture;
-	aie::Texture m_ironManTexture;
+	//aie::Texture m_ironManTexture;
+
+	aie::Texture m_marbleTexture;
+	aie::Texture m_hatchingTexture;
+	aie::Texture m_rampTexture;
 
 	Mesh m_quadMesh;
 	Mesh m_screenQuad;
