@@ -186,9 +186,11 @@ void AIEGraphicsApp::update(float deltaTime)
 			float pos[] = { inst->GetPosition().x, inst->GetPosition().y, inst->GetPosition().z };
 			
 			// Rotation
-			glm::quat quaternion = glm::quat_cast(inst->GetTransform());
+			glm::quat quaternion = glm::toQuat(inst->GetTransform());
 			glm::vec3 euler = glm::eulerAngles(quaternion);
 			float eulerRot[] = { euler.x, euler.y, euler.z };
+
+			//glm::decom
 			
 			// Scale
 			glm::vec3 col1(transform[0][0], transform[1][0], transform[2][0]);
