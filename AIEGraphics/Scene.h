@@ -5,6 +5,7 @@
 
 class Camera;
 class Instance;
+class ParticleEmitter;
 
 const int MAX_LIGHTS = 12;
 
@@ -23,16 +24,21 @@ struct Light
 class Scene
 {
 public:
-	Scene(Camera* _camera, glm::vec2 _windowSize, Light& _light, glm::vec3 _ambientLight);
+	Scene(Camera** _cameras, int _cameraCount, glm::vec2 _windowSize, Light& _light, glm::vec3 _ambientLight);
 	~Scene();
 
 	void AddInstance(Instance* _instance);
+	void Update(float _dt);
 	void Draw();
 
 	std::list<Instance*> GetInstances() { return m_instances; }
 	void SetInstances(std::list<Instance*> _instances) { m_instances = _instances; }
-	Camera* GetCamera() { return m_camera; }
-	void SetCamera(Camera* _camera) { m_camera = _camera; }
+	int GetCameraCount() { return m_cameraCount; }
+	int GetCameraIndex() { return m_cameraIndex; }
+	Camera* GetCamera();
+	Camera* GetCameraAt(int _index);
+	void SetCamera(Camera* _camera, int _index);
+	void AddCamera(Camera* _camera);
 	glm::vec2 GetWindowSize() { return m_windowSize; }
 	Light& GetGlobalLight() { return m_globalDirlight; }
 	glm::vec3 GetAmbientLight() { return m_ambientLight; }
@@ -42,6 +48,7 @@ public:
 	glm::vec3* GetPointLightColours() { return &m_pointLightColours[0]; }
 	void AddPointLights(Light _light) { m_pointLights.push_back(_light); }
 	void AddPointLights(glm::vec3 _dir, glm::vec3 _colour, float _intensity) { m_pointLights.push_back(*new Light(_dir, _colour, _intensity)); }
+	void AddParticle(ParticleEmitter* _particle);
 
 protected:
 	Camera* m_camera;
@@ -50,8 +57,15 @@ protected:
 	std::vector<Light> m_pointLights;
 	glm::vec3 m_ambientLight;
 	std::list<Instance*> m_instances;
+	std::list<ParticleEmitter*> m_particles;
+
+	Camera** m_cameras;
+	int m_cameraCount;
+	int m_cameraIndex;
 
 	glm::vec3 m_pointLightPositions[MAX_LIGHTS];
 	glm::vec3 m_pointLightColours[MAX_LIGHTS];
+
+	float m_sceneRunTime = 0;
 };
 

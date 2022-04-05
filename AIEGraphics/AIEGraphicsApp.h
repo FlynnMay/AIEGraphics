@@ -72,8 +72,8 @@ protected:
 	//glm::mat4	m_projectionMatrix;
 
 	// camera
-	std::vector<Camera*> m_cameras;
-	int m_cameraIndex;
+	//std::vector<Camera*> m_cameras;
+	//int m_cameraIndex;
 
 	// other stuff
 	SceneObject* sun;

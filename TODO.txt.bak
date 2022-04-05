@@ -15,8 +15,8 @@ Models
 
 Lights
 [ ] 1. Implement a point light that constantly moves in a figure eight (8) motion.
-[.] 2. Implement at least two (2) other point lights that can move moved via ImGUI.
-[x] 3. ImGUI must be used to allow you to change the color of each point light individually.
+[ ] 2. Implement at least two (2) other point lights that can move moved via ImGUI.
+[ ] 3. ImGUI must be used to allow you to change the color of each point light individually.
 [ ] 4. Use a Sphere Gizmo to represent the point lights in 3D space, the color of the Gizmo needs to match the light.
 
  

@@ -5,6 +5,7 @@ class Camera
 {
 public:
 	Camera();
+	Camera(glm::vec3 _position);
 	~Camera();
 
 	virtual void Update(float _dt);

@@ -40,19 +40,16 @@ bool AIEGraphicsApp::startup()
 	// initialise gizmo primitive counts
 	Gizmos::create(10000, 10000, 10000, 10000);
 
-	// create simple camera transforms
-	//m_viewMatrix = glm::lookAt(vec3(10), vec3(0), vec3(0, 1, 0));
-	//m_projectionMatrix = glm::perspective(glm::pi<float>() * 0.25f, getWindowWidth() / (float)getWindowHeight(), 0.1f, 1000.f);
 	Light light;
 	light.colour = { 2, 2, 2 };
 	light.direction = { 1.0f, -0.1f, -0.1f };
 	m_ambientLight = { 0.25f, 0.25f, 0.25f };
-	m_cameraIndex = 0;
-	m_cameras.push_back(new FlyCamera());
-	m_cameras.push_back(new Camera());
-	m_cameras[1]->SetPosition({-10,5,0});
 
-	m_scene = new Scene(m_cameras[m_cameraIndex], glm::vec2(getWindowWidth(), getWindowHeight()), light, m_ambientLight);
+	Camera** cams = new Camera*;
+	cams[0] = new FlyCamera();
+	cams[1] = new Camera({ -10,5,0 });
+
+	m_scene = new Scene(cams, 2, glm::vec2(getWindowWidth(), getWindowHeight()), light, m_ambientLight);
 	m_scene->AddPointLights(glm::vec3(5, 3, 0), glm::vec3(1, 0, 0), 50);
 	m_scene->AddPointLights(glm::vec3(-5, 3, 0), glm::vec3(0, 0, 1), 50);
 
@@ -60,15 +57,7 @@ bool AIEGraphicsApp::startup()
 
 	m_emitter = new ParticleEmitter();
 	m_emitter->Initialise(1000, 500, 0.1f, 1.0f, 1, 5, 1, 0.1f, glm::vec4(1, 0, 0, 1), glm::vec4(1, 1, 0, 1));
-	
-	// PLANET ---REMOVE---
-	//sun = new Planet(glm::vec3(0, 0, 0), 1.0f, RotationDirection::CLOCKWISE, glm::vec4(.75f, 0.15f, 0.75f, 1.0f));
-	//earth = new Planet(glm::vec3(2, 0, 0), 0.8f, RotationDirection::CLOCKWISE, glm::vec4(0, 0.15f, 0.75f, 1.0f));
-	//earth->SetParent(sun);
-	//m_sceneObjects.push_back(sun);
-
-	// -------------------
-
+	m_scene->AddParticle(m_emitter);
 	return true;
 }
 
@@ -95,20 +84,6 @@ void AIEGraphicsApp::update(float deltaTime)
 			i == 10 ? white : black);
 	}
 
-	// PLANET ---REMOVE---
-	//glm::quat quaterion;
-	//quaterion = glm::quat(glm::vec3(glm::radians(0.0f), glm::radians(0.0f), glm::radians(90.0f)));
-	//sun->SetTransform(glm::toMat4(quaterion) * *sun->GetTransform());
-
-	//glm::mat4 trans = *sun->GetTransform();
-	////trans = glm::rotate(trans, glm::radians(90.0f), glm::vec3(0.0, 0.0, 1.0));
-	//glm::mat4 model = glm::mat4(1.0f);
-	//model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0, 1.0, 0.0));
-	//auto output = trans * model;
-	//sun->SetTransform(output);
-	//sun->Update(deltaTime);
-	// -------------------
-
 	// add a transform so that we can see the axis
 	Gizmos::addTransform(mat4(1));
 
@@ -119,7 +94,7 @@ void AIEGraphicsApp::update(float deltaTime)
 	//m_light.direction = glm::normalize(glm::vec3(glm::cos(time * 2), glm::sin(time * 2), 0.0f));
 
 	// particles
-	m_emitter->Update(deltaTime, m_cameras[m_cameraIndex]->GetTransform(m_cameras[m_cameraIndex]->GetPosition(), {0,0,0}, {1,1,1}));
+	m_emitter->Update(deltaTime, m_scene->GetCamera()->GetTransform(m_scene->GetCamera()->GetPosition(), {0,0,0}, {1,1,1}));
 
 	// quit if we press escape
 	aie::Input* input = aie::Input::getInstance();
@@ -127,39 +102,7 @@ void AIEGraphicsApp::update(float deltaTime)
 	if (input->isKeyDown(aie::INPUT_KEY_ESCAPE))
 		quit();
 
-	m_cameras[m_cameraIndex]->Update(deltaTime);
-
-	ImGui::Begin("Light Settings");
-	
-	ImGui::DragFloat3("Sunlight Direction", &m_scene->GetGlobalLight().direction[0], 0.1f, -0.1f, 1.0f);
-	ImGui::DragFloat3("Sunlight Colour", &m_scene->GetGlobalLight().colour[0], 0.1f, 0.0f, 2.0f);
-	for (int i = 0; i < m_scene->GetLightCount(); i++)
-	{
-		std::string dirString = "Light Direction ";
-		std::string colString = "Light Colour ";
-		
-		ImGui::DragFloat3(dirString.append(std::to_string(i + 1)).c_str(), &m_scene->GetPointLights()[i].direction[0], 0.1f, -0.1f, 1.0f);
-		ImGui::DragFloat3(colString.append(std::to_string(i + 1)).c_str(), &m_scene->GetPointLights()[i].colour[0], 0.1f, 0.0f, 2.0f);
-	}
-	ImGui::End();
-
-	FlyCamera* flyCam = dynamic_cast<FlyCamera*>(m_cameras[m_cameraIndex]);
-	bool debugMode = m_cameras[m_cameraIndex]->GetDebugMode();
-
-	ImGui::Begin("Camera Settings");
-	ImGui::DragInt("Active Camera", &m_cameraIndex, 0.1f, 0, m_cameras.size() - 1);
-	ImGui::Checkbox("Debug Camera", &debugMode);
-	
-	if (flyCam != nullptr)
-	{
-		float speed = flyCam->GetSpeed();
-		ImGui::DragFloat("FlyCam Speed", &speed, 1, 0, 10.0f);
-		flyCam->SetSpeed(speed);
-	}
-
-	ImGui::End();
-	m_cameras[m_cameraIndex]->SetDebugMode(debugMode);
-	m_scene->SetCamera(m_cameras[m_cameraIndex]);
+	m_scene->Update(deltaTime);
 
 	ImGui::Begin("Post-Processing Settings");
 	ImGui::DragInt("Post-Processing Target", &m_postProcessingTarget, 0.1f, 0, 11);
@@ -186,11 +129,9 @@ void AIEGraphicsApp::update(float deltaTime)
 			float pos[] = { inst->GetPosition().x, inst->GetPosition().y, inst->GetPosition().z };
 			
 			// Rotation
-			glm::quat quaternion = glm::toQuat(inst->GetTransform());
-			glm::vec3 euler = glm::eulerAngles(quaternion);
+			glm::quat quaternion = glm::quat_cast(inst->GetTransform());
+			glm::vec3 euler = glm::degrees(glm::eulerAngles(quaternion));
 			float eulerRot[] = { euler.x, euler.y, euler.z };
-
-			//glm::decom
 			
 			// Scale
 			glm::vec3 col1(transform[0][0], transform[1][0], transform[2][0]);
@@ -227,14 +168,14 @@ void AIEGraphicsApp::draw()
 	clearScreen();
 	m_scene->Draw();
 
-	for (int i = 0; i < m_cameras.size(); i++)
+	for (int i = 0; i < m_scene->GetCameraCount(); i++)
 	{
-		m_cameras[i]->Draw();
+		m_scene->GetCameraAt(i)->Draw();
 	}
 
 	// update perspective based on screen size
-	glm::mat4 projectionMatrix = m_cameras[m_cameraIndex]->GetProjectionMatrix(getWindowWidth(), getWindowHeight());
-	glm::mat4 viewMatrix = m_cameras[m_cameraIndex]->GetViewMatrix();
+	glm::mat4 projectionMatrix = m_scene->GetCamera()->GetProjectionMatrix(getWindowWidth(), getWindowHeight());
+	glm::mat4 viewMatrix = m_scene->GetCamera()->GetViewMatrix();
 	auto pvm = projectionMatrix * viewMatrix * mat4(1);
 
 #pragma region Bunny
@@ -315,11 +256,17 @@ void AIEGraphicsApp::draw()
 	//sun->Draw();
 	// -------------------
 
-	//// Particles
-	//pvm = projectionMatrix * viewMatrix * m_particleTransform;
-	//m_particleShader.bind();
-	//m_particleShader.bindUniform("ProjectionViewModel", pvm);
+	// Particles
+	pvm = projectionMatrix * viewMatrix * m_particleTransform;
+	m_particleShader.bind();
+	m_particleShader.bindUniform("ProjectionViewModel", pvm);
 	//m_emitter->Draw();
+
+	for (int i = 0; i < m_scene->GetLightCount(); i++)
+	{
+		Light light = m_scene->GetPointLights()[i];
+		//Gizmos::addSphere()
+	}
 
 	Gizmos::draw(projectionMatrix * viewMatrix);
 	Gizmos::draw2D((float)getWindowWidth(), (float)getWindowHeight());
@@ -525,14 +472,14 @@ bool AIEGraphicsApp::LaunchShader()
 		 0,  0,  0,  1
 	}; // This is 10 units large
 
-	for (int i = 0; i < 10; i++)
-		m_scene->AddInstance(new Instance(glm::vec3(i * 2, 0, 0), glm::vec3(0, i * 30, i * 30), glm::vec3(1, 1, 1), &m_spearMesh, &m_normalMapShader));
+	//for (int i = 0; i < 10; i++)
+	//	m_scene->AddInstance(new Instance(glm::vec3(i * 2, 0, 0), glm::vec3(0, i * 30, i * 30), glm::vec3(1, 1, 1), &m_spearMesh, &m_normalMapShader));
 
-	for (int i = 0; i < 10; i++)
-		m_scene->AddInstance(new Instance(glm::vec3(i * 2, 0, 0), glm::vec3(0, 0, 0), glm::vec3(0.1f * i, 0.1f * i, 0.1f * i), &m_otherMesh, &m_normalMapShader));
+	//for (int i = 0; i < 10; i++)
+	//	m_scene->AddInstance(new Instance(glm::vec3(i * 2, 0, 0), glm::vec3(0, 0, 0), glm::vec3(0.1f * i, 0.1f * i, 0.1f * i), &m_otherMesh, &m_normalMapShader));
 
-	for (int i = 0; i < 10; i++)
-		m_scene->AddInstance(new Instance(glm::vec3(i * 2, 0, 30), glm::vec3(0, 0, 0), glm::vec3(1, 1, 1), &m_bunnyMesh, &m_normalMapShader));
+	//for (int i = 0; i < 10; i++)
+	//	m_scene->AddInstance(new Instance(glm::vec3(i * 2, 0, 30), glm::vec3(0, 0, 0), glm::vec3(1, 1, 1), &m_bunnyMesh, &m_normalMapShader));
 
 	return true;
 }

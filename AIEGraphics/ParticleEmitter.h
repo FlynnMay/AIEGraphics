@@ -31,6 +31,28 @@ public:
 
 	void Draw();
 
+	float GetEmitRate() { return m_emitRate; }
+	void SetEmitRate(float _rate) { m_emitRate = _rate; }
+
+	float GetLifeSpanMax() { return m_lifespanMax; }
+	void SetLifeSpanMax(float _max) { m_lifespanMax = _max; }
+
+	float GetLifeSpanMin() { return m_lifespanMin; }
+	void SetLifeSpanMin(float _min) { m_lifespanMin = _min; }
+	
+	float GetStartSize() { return m_startSize; }
+	void SetStartSize(float _size) { m_startSize = _size; }
+
+	float GetEndSize() { return m_endSize; }
+	void SetEndSize(float _size) { m_endSize = _size; }
+
+	glm::vec4 GetStartColour() { return m_startColour; }
+	void SetStartColour(glm::vec4 _colour) { m_startColour = _colour; }
+
+	glm::vec4 GetEndColour() { return m_endColour; }
+	void SetEndColour(glm::vec4 _colour) { m_endColour = _colour; }
+
+
 protected:
 	Particle* m_particles;
 	unsigned int m_firstDead;

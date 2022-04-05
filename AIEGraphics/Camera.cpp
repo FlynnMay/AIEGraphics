@@ -11,6 +11,14 @@ Camera::Camera()
 	m_debugMode = false;
 }
 
+Camera::Camera(glm::vec3 _position)
+{
+	m_theta = 0;
+	m_phi = 0;
+	m_position = _position;
+	m_debugMode = false;
+}
+
 Camera::~Camera()
 {
 }
@@ -25,7 +33,7 @@ void Camera::Draw()
 	if (!m_debugMode)
 		return;
 
-	aie::Gizmos::addSphere(GetPosition(), 0.1f, 10, 10, { 1,0,0,1 });
+	aie::Gizmos::addCylinderFilled(GetPosition(), 0.1f, .1f, 16, {1,0,0,1});
 }
 
 glm::mat4 Camera::GetViewMatrix()
