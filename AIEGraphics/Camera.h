@@ -16,6 +16,10 @@ public:
 	void SetPosition(const glm::vec3 _position);
 	glm::vec3 GetPosition();
 
+	void SetDebugColour(const glm::vec4 _colour);
+
+	glm::vec4 GetDebugColour();
+
 	void SetPerspective(float fieldOfView, float aspectRatio, float near, float far);
 	void SetLookAt(glm::vec3 from, glm::vec3 to, glm::vec3 up);
 	glm::mat4 GetWorldTransform();
@@ -31,6 +35,7 @@ protected:
 	float m_theta;
 	float m_phi;
 	glm::vec3 m_position;
+	glm::vec4 m_debugColour;
 	float m_lastMouseX;
 	float m_lastMouseY;
 

@@ -48,13 +48,16 @@ bool AIEGraphicsApp::startup()
 	Camera** cams = new Camera*;
 	cams[0] = new FlyCamera();
 	cams[1] = new Camera({ -10,5,0 });
+	cams[2] = new Camera({ 10,5,0 });
+	cams[3] = new Camera({ 0,5,10 });
+	cams[4] = new Camera({ 0,5,-10 });
 
-	m_scene = new Scene(cams, 2, glm::vec2(getWindowWidth(), getWindowHeight()), light, m_ambientLight);
+	m_scene = new Scene(cams, 5, glm::vec2(getWindowWidth(), getWindowHeight()), light, m_ambientLight);
 	m_scene->AddPointLights(glm::vec3(5, 3, 0), glm::vec3(1, 0, 0), 50);
 	m_scene->AddPointLights(glm::vec3(-5, 3, 0), glm::vec3(0, 0, 1), 50);
 
 	LaunchShader();
-
+	m_scene->SetParticleShader(&m_particleShader);
 	m_emitter = new ParticleEmitter();
 	m_emitter->Initialise(1000, 500, 0.1f, 1.0f, 1, 5, 1, 0.1f, glm::vec4(1, 0, 0, 1), glm::vec4(1, 1, 0, 1));
 	m_scene->AddParticle(m_emitter);
@@ -108,54 +111,6 @@ void AIEGraphicsApp::update(float deltaTime)
 	ImGui::DragInt("Post-Processing Target", &m_postProcessingTarget, 0.1f, 0, 11);
 	if (m_postProcessingTarget == 8)
 		ImGui::DragInt("Pixel Strength", &m_pixelStrength, 0.1f, 0, 255);
-	ImGui::End();
-
-	ImGui::Begin("Instances");
-	int i = 0;
-	std::list<Instance*> instances = m_scene->GetInstances();
-	for (auto it = instances.begin(); it != instances.end(); it++)
-	{
-		std::string iString = std::to_string(i);
-		std::string headerName = iString;
-		headerName.append(": Instance");
-		const ImVec2 border = ImVec2(0, 0);
-		ImGui::BeginGroup();
-		if (ImGui::CollapsingHeader(headerName.c_str()))
-		{
-			Instance* inst = *it;
-			auto transform = inst->GetTransform();
-			
-			// Position
-			float pos[] = { inst->GetPosition().x, inst->GetPosition().y, inst->GetPosition().z };
-			
-			// Rotation
-			glm::quat quaternion = glm::quat_cast(inst->GetTransform());
-			glm::vec3 euler = glm::degrees(glm::eulerAngles(quaternion));
-			float eulerRot[] = { euler.x, euler.y, euler.z };
-			
-			// Scale
-			glm::vec3 col1(transform[0][0], transform[1][0], transform[2][0]);
-			glm::vec3 col2(transform[0][1], transform[1][1], transform[2][1]);
-			glm::vec3 col3(transform[0][2], transform[1][2], transform[2][2]);
-			
-			float scaleX = glm::length(col1);
-			float scaleY = glm::length(col2);
-			float scaleZ = glm::length(col3);
-
-			float scale[] = {scaleX, scaleY, scaleZ};
-
-			//std::string posStrin
-			ImGui::DragFloat3((std::string("Postition##").append(iString)).c_str(), pos, 0.1f);
-			ImGui::DragFloat3((std::string("Rotation##").append(iString)).c_str(), eulerRot, 0.1f);
-			ImGui::DragFloat3((std::string("Scale##").append(iString)).c_str(), scale, 0.1f);
-
-			//ImGui::DragFloat3("Rotation", rot, 0.1f);			
-			inst->SetTransform(inst->MakeTransform(glm::make_vec3(pos), glm::make_vec3(eulerRot), glm::make_vec3(scale)));
-		}
-		ImGui::EndGroup();
-		i++;
-	}
-	m_scene->SetInstances(instances);
 	ImGui::End();
 }
 
@@ -251,15 +206,10 @@ void AIEGraphicsApp::draw()
 	
 	m_texturedShader.bind();
 
-
-	// PLANET ---REMOVE---
-	//sun->Draw();
-	// -------------------
-
 	// Particles
-	pvm = projectionMatrix * viewMatrix * m_particleTransform;
-	m_particleShader.bind();
-	m_particleShader.bindUniform("ProjectionViewModel", pvm);
+	//pvm = projectionMatrix * viewMatrix * m_particleTransform;
+	//m_particleShader.bind();
+	//m_particleShader.bindUniform("ProjectionViewModel", pvm);
 	//m_emitter->Draw();
 
 	for (int i = 0; i < m_scene->GetLightCount(); i++)
@@ -472,14 +422,14 @@ bool AIEGraphicsApp::LaunchShader()
 		 0,  0,  0,  1
 	}; // This is 10 units large
 
-	//for (int i = 0; i < 10; i++)
-	//	m_scene->AddInstance(new Instance(glm::vec3(i * 2, 0, 0), glm::vec3(0, i * 30, i * 30), glm::vec3(1, 1, 1), &m_spearMesh, &m_normalMapShader));
+	for (int i = 0; i < 10; i++)
+		m_scene->AddInstance(new Instance(glm::vec3(i * 2, 0, 0), glm::vec3(0, i * 30, i * 30), glm::vec3(1, 1, 1), &m_spearMesh, &m_normalMapShader));
+
+	for (int i = 0; i < 10; i++)
+		m_scene->AddInstance(new Instance(glm::vec3(i * 2, 0, 0), glm::vec3(0, 0, 0), glm::vec3(0.1f * i, 0.1f * i, 0.1f * i), &m_otherMesh, &m_normalMapShader));
 
 	//for (int i = 0; i < 10; i++)
-	//	m_scene->AddInstance(new Instance(glm::vec3(i * 2, 0, 0), glm::vec3(0, 0, 0), glm::vec3(0.1f * i, 0.1f * i, 0.1f * i), &m_otherMesh, &m_normalMapShader));
-
-	//for (int i = 0; i < 10; i++)
-	//	m_scene->AddInstance(new Instance(glm::vec3(i * 2, 0, 30), glm::vec3(0, 0, 0), glm::vec3(1, 1, 1), &m_bunnyMesh, &m_normalMapShader));
+	//	m_scene->AddInstance(new Instance(glm::vec3(i * 2, 0, 0), glm::vec3(0, 0, 0), glm::vec3(1, 1, 1), &m_bunnyMesh, &m_normalMapShader));
 
 	return true;
 }

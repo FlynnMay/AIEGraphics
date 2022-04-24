@@ -6,6 +6,12 @@
 class Camera;
 class Instance;
 class ParticleEmitter;
+class EasyShader;
+
+namespace aie
+{
+	class ShaderProgram;
+}
 
 const int MAX_LIGHTS = 12;
 
@@ -49,6 +55,7 @@ public:
 	void AddPointLights(Light _light) { m_pointLights.push_back(_light); }
 	void AddPointLights(glm::vec3 _dir, glm::vec3 _colour, float _intensity) { m_pointLights.push_back(*new Light(_dir, _colour, _intensity)); }
 	void AddParticle(ParticleEmitter* _particle);
+	void SetParticleShader(aie::ShaderProgram* _shader);
 
 protected:
 	Camera* m_camera;
@@ -57,7 +64,9 @@ protected:
 	std::vector<Light> m_pointLights;
 	glm::vec3 m_ambientLight;
 	std::list<Instance*> m_instances;
-	std::list<ParticleEmitter*> m_particles;
+	std::vector<ParticleEmitter*> m_particles;
+
+	EasyShader* m_particleShader;
 
 	Camera** m_cameras;
 	int m_cameraCount;

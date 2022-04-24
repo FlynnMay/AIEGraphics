@@ -63,6 +63,9 @@
     <ClCompile Include="ParticleEmitter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="EasyShader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AIEGraphicsApp.h">
@@ -102,6 +105,9 @@
       <Filter>Header Files\Provided</Filter>
     </ClInclude>
     <ClInclude Include="ParticleEmitter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="EasyShader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

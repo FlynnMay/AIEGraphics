@@ -24,10 +24,12 @@ public:
 	glm::vec3 GetPosition() { return m_transform[3]; }
 	glm::mat4 GetTransform() { return m_transform; }
 	void SetTransform(glm::mat4 _transform) { m_transform = _transform; }
+	void SetActive(bool _active) { m_isActive = _active; }
+	bool GetActive() { return m_isActive; }
 
 protected:
 	glm::mat4 m_transform;
 	aie::OBJMesh* m_mesh;
 	aie::ShaderProgram* m_shader;
+	bool m_isActive = true;
 };
-

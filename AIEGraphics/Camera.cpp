@@ -9,6 +9,7 @@ Camera::Camera()
 	m_phi = 0;
 	m_position = glm::vec3(0, 0, 0);
 	m_debugMode = false;
+	m_debugColour = glm::vec4(0, 0, 0, 0);
 }
 
 Camera::Camera(glm::vec3 _position)
@@ -17,6 +18,7 @@ Camera::Camera(glm::vec3 _position)
 	m_phi = 0;
 	m_position = _position;
 	m_debugMode = false;
+	m_debugColour = glm::vec4(0, 0, 0, 0);
 }
 
 Camera::~Camera()
@@ -33,7 +35,7 @@ void Camera::Draw()
 	if (!m_debugMode)
 		return;
 
-	aie::Gizmos::addCylinderFilled(GetPosition(), 0.1f, .1f, 16, {1,0,0,1});
+	aie::Gizmos::addCylinderFilled(GetPosition(), 0.1f, .1f, 16, m_debugColour);
 }
 
 glm::mat4 Camera::GetViewMatrix()
@@ -57,6 +59,16 @@ void Camera::SetPosition(const glm::vec3 _position)
 glm::vec3 Camera::GetPosition()
 {
 	return m_position;
+}
+
+void Camera::SetDebugColour(const glm::vec4 _colour)
+{
+	m_debugColour = _colour;
+}
+
+glm::vec4 Camera::GetDebugColour()
+{
+	return m_debugColour;
 }
 
 void Camera::SetPerspective(float fieldOfView, float aspectRatio, float near, float far)

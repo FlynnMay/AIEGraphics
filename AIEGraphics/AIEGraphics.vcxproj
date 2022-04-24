@@ -181,6 +181,7 @@
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="SceneObject.cpp" />
     <ClCompile Include="Shader.cpp" />
+    <ClCompile Include="EasyShader.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AIEGraphicsApp.h" />
@@ -195,6 +196,7 @@
     <ClInclude Include="Scene.h" />
     <ClInclude Include="SceneObject.h" />
     <ClInclude Include="Shader.h" />
+    <ClInclude Include="EasyShader.h" />
     <ClInclude Include="tiny_obj_loader.h" />
   </ItemGroup>
   <ItemGroup>

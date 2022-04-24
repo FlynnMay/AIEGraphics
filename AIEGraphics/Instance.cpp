@@ -21,6 +21,9 @@ void Instance::Draw(Camera* _camera, float _windowWidth, float _windowHeight, gl
 
 void Instance::Draw(Scene* _scene)
 {
+    if (!m_isActive)
+        return;
+
     // set the render pipeline
     m_shader->bind();
 

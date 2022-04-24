@@ -52,6 +52,9 @@ public:
 	glm::vec4 GetEndColour() { return m_endColour; }
 	void SetEndColour(glm::vec4 _colour) { m_endColour = _colour; }
 
+	glm::vec3 GetPosition() { return m_position; }
+	void SetPosition(glm::vec3 _position) { m_position = _position; }
+
 
 protected:
 	Particle* m_particles;
