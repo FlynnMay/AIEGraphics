@@ -16,19 +16,20 @@ Scene::Scene(Camera** _cameras, int _cameraCount, glm::vec2 _windowSize, Light& 
 	m_particleShader = new EasyShader();
 	//m_particleShaderFactory->SetShader();
 
-	m_particleShader->SetOnShaderBind([=](auto s) {
-		glm::mat4 projectionMatrix = GetCamera()->GetProjectionMatrix(GetWindowSize().x, GetWindowSize().y);
-		glm::mat4 viewMatrix = GetCamera()->GetViewMatrix();
+	m_particleShader->SetOnShaderBind([=](auto s)
+		{
+			glm::mat4 projectionMatrix = GetCamera()->GetProjectionMatrix(GetWindowSize().x, GetWindowSize().y);
+			glm::mat4 viewMatrix = GetCamera()->GetViewMatrix();
 
-		glm::mat4 pTransform = {
-			1.0f,0,0,0,
-			0,1.0f,0,0,
-			0,0,1.0f,0,
-			0,0,0,1.0f
-		};
+			glm::mat4 pTransform = {
+				1.0f,0,0,0,
+				0,1.0f,0,0,
+				0,0,1.0f,0,
+				0,0,0,1.0f
+			};
 
-		auto pvm = projectionMatrix * viewMatrix * pTransform;
-		s->bindUniform("ProjectionViewModel", pvm);
+			auto pvm = projectionMatrix * viewMatrix * pTransform;
+			s->bindUniform("ProjectionViewModel", pvm);
 		});
 
 }
@@ -81,7 +82,8 @@ void Scene::Update(float _dt)
 	bool debugMode = GetCamera()->GetDebugMode();
 	ImGui::Checkbox("Debug Camera", &debugMode);
 
-	if (debugMode) {
+	if (debugMode)
+	{
 		glm::vec4 camColour = GetCamera()->GetDebugColour();
 		ImGui::ColorEdit4("Debug Colour", &camColour[0]);
 		GetCamera()->SetDebugColour(camColour);
@@ -131,23 +133,23 @@ void Scene::Update(float _dt)
 		if (ImGui::CollapsingHeader(iString.append(std::string(": Particle")).c_str()))
 		{
 			float emitRate = particle->GetEmitRate();
-			ImGui::DragFloat(std::string("Emission Rate##").append(iString).c_str(), &emitRate, 0.1f, 0.0001f);
+			ImGui::DragFloat(std::string("Emission Rate##").append(iString).c_str(), &emitRate, 0.1f, 0.0001f, 1000.0f);
 			particle->SetEmitRate(emitRate);
 
 			float lifeSpanMax = particle->GetLifeSpanMax();
-			ImGui::DragFloat(std::string("Life Span Max##").append(iString).c_str(), &lifeSpanMax, 0.1f, 0.0001f);
+			ImGui::DragFloat(std::string("Life Span Max##").append(iString).c_str(), &lifeSpanMax, 0.1f, 0.0001f, 1000.0f);
 			particle->SetLifeSpanMax(lifeSpanMax);
 
 			float lifeSpanMin = particle->GetLifeSpanMin();
-			ImGui::DragFloat(std::string("Life Span Min##").append(iString).c_str(), &lifeSpanMin, 0.1f, 0.0001f);
+			ImGui::DragFloat(std::string("Life Span Min##").append(iString).c_str(), &lifeSpanMin, 0.1f, 0.0001f, 1000.0f);
 			particle->SetLifeSpanMin(lifeSpanMin);
 
 			float startSize = particle->GetStartSize();
-			ImGui::DragFloat(std::string("Start Size##").append(iString).c_str(), &startSize, 0.1f, 0.0001f);
+			ImGui::DragFloat(std::string("Start Size##").append(iString).c_str(), &startSize, 0.1f, 0.0001f, 1000.0f);
 			particle->SetStartSize(startSize);
 
 			float endSize = particle->GetEndSize();
-			ImGui::DragFloat(std::string("End Size##").append(iString).c_str(), &endSize, 0.1f, 0.0001f);
+			ImGui::DragFloat(std::string("End Size##").append(iString).c_str(), &endSize, 0.1f, 0.0001f, 1000.0f);
 			particle->SetEndSize(endSize);
 
 			glm::vec4 startColour = particle->GetStartColour();

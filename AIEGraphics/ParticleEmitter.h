@@ -32,7 +32,7 @@ public:
 	void Draw();
 
 	float GetEmitRate() { return m_emitRate; }
-	void SetEmitRate(float _rate) { m_emitRate = _rate; }
+	void SetEmitRate(float _rate) { m_emitRate = glm::clamp( _rate, 0.0001f, 1000.0f); }
 
 	float GetLifeSpanMax() { return m_lifespanMax; }
 	void SetLifeSpanMax(float _max) { m_lifespanMax = _max; }
