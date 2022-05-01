@@ -176,10 +176,8 @@
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="OBJMesh.cpp" />
     <ClCompile Include="ParticleEmitter.cpp" />
-    <ClCompile Include="Planet.cpp" />
     <ClCompile Include="RenderTarget.cpp" />
     <ClCompile Include="Scene.cpp" />
-    <ClCompile Include="SceneObject.cpp" />
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="EasyShader.cpp" />
   </ItemGroup>
@@ -191,10 +189,8 @@
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="OBJMesh.h" />
     <ClInclude Include="ParticleEmitter.h" />
-    <ClInclude Include="Planet.h" />
     <ClInclude Include="RenderTarget.h" />
     <ClInclude Include="Scene.h" />
-    <ClInclude Include="SceneObject.h" />
     <ClInclude Include="Shader.h" />
     <ClInclude Include="EasyShader.h" />
     <ClInclude Include="tiny_obj_loader.h" />

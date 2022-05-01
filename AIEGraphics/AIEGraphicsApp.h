@@ -48,23 +48,14 @@ protected:
 	aie::Texture m_hatchingTexture;
 	aie::Texture m_rampTexture;
 
-	Mesh m_quadMesh;
-	Mesh m_screenQuad;
-
-	
 	glm::mat4 m_modelTransform;
 	glm::mat4 m_quadTransform;
 
+	Mesh m_quadMesh;
+	Mesh m_screenQuad;
 	aie::OBJMesh m_bunnyMesh;
-	glm::mat4 m_bunnyTransform;
-
 	aie::OBJMesh m_spearMesh;
-	glm::mat4 m_spearTransform;
-
 	aie::OBJMesh m_otherMesh;
-	glm::mat4 m_otherTransform;
-
-	glm::mat4 m_particleTransform;
 
 	float m_zoom = 10.0f;
 	float m_speed = 10.0f;

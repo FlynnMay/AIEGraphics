@@ -15,9 +15,12 @@
 Scene::Scene(Camera** _cameras, int _cameraCount, glm::vec2 _windowSize, Light& _light, glm::vec3 _ambientLight) :
 	m_cameras(_cameras), m_cameraCount(_cameraCount), m_cameraIndex(0), m_windowSize(_windowSize), m_globalDirlight(_light), m_ambientLight(_ambientLight)
 {
+	// Add a point to move as a figure 8
 	AddPointLight(Light({ 0,0,0 }, { 1,1,1 }, 1));
-	m_particleShader = new EasyShader();
 
+	m_particleShader = new EasyShader();
+	
+	// Set the instructions for a particle shaders bind
 	m_particleShader->SetOnShaderBind([=](auto s)
 		{
 			glm::mat4 projectionMatrix = GetCamera()->GetProjectionMatrix(GetWindowSize().x, GetWindowSize().y);
@@ -95,7 +98,6 @@ void Scene::UpdateInstanceGUI()
 		std::string iString = std::to_string(i);
 		std::string headerName = iString;
 		headerName.append(": Instance");
-		const ImVec2 border = ImVec2(0, 0);
 		ImGui::BeginGroup();
 		if (ImGui::CollapsingHeader(headerName.c_str()))
 		{
@@ -105,18 +107,24 @@ void Scene::UpdateInstanceGUI()
 			ImGui::Checkbox((std::string("Is Active").append(iString)).c_str(), &isActive);
 			inst->SetActive(isActive);
 
+			// get transform
 			glm::mat4 transform = inst->GetTransform();
+			
+			// extract transform data
 			glm::vec3 scale;
 			glm::quat rotation;
 			glm::vec3 translation;
-			
 			glm::decompose(inst->GetTransform(), scale, rotation, translation, glm::vec3(0), glm::vec4(0));
+			
+			// convert rotation to a vec3 in degrees from a quaterion
 			glm::vec3 euler = glm::degrees(glm::eulerAngles(rotation));
 
+			// add controllable UI elements
 			ImGui::DragFloat3((std::string("Postition##").append(iString)).c_str(), &translation[0], 0.1f);
 			ImGui::DragFloat3((std::string("Rotation##").append(iString)).c_str(), &euler[0], 0.1f, -180, 180);
 			ImGui::DragFloat3((std::string("Scale##").append(iString)).c_str(), &scale[0], 0.1f);
 
+			// apply the transform changes
 			inst->SetTransform(inst->MakeTransform(translation, euler, scale));
 		}
 		ImGui::EndGroup();

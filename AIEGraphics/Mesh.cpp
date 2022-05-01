@@ -203,15 +203,6 @@ void Mesh::CreatePyramid()
 	Initialise(8, vertices, 36, indices);
 }
 
-void Mesh::CreateGrid(int cols, int rows)
-{
-	// Define 5 vertices for our two triangles
-	Mesh::Vertex* vertices = new Mesh::Vertex[cols*rows];
-	unsigned int* indices = new unsigned int[cols * rows];
-
-	Initialise(8, vertices, 36, indices);
-}
-
 void Mesh::Draw()
 {
 	glBindVertexArray(m_vao);

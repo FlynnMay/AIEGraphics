@@ -3,8 +3,6 @@
 #include "Scene.h"
 #include "Gizmos.h"
 #include "Input.h"
-#include "Planet.h"
-#include "SceneObject.h"
 #include "FlyCamera.h"
 #include "EasyShader.h"
 #include "ParticleEmitter.h"
@@ -46,6 +44,7 @@ bool AIEGraphicsApp::startup()
 	light.direction = { 1.0f, -0.1f, -0.1f };
 	m_ambientLight = { 0.25f, 0.25f, 0.25f };
 
+	// setup cameras
 	Camera** cams = new Camera*;
 	cams[0] = new FlyCamera();
 	cams[1] = new Camera({ -15,5,0 }, { 0, 0 });
@@ -53,16 +52,21 @@ bool AIEGraphicsApp::startup()
 	cams[3] = new Camera({ 0,5,15 }, { 270, 0 });
 	cams[4] = new Camera({ 0,5,-15 }, { 90, 0 });
 
-
+	// setup scene
 	m_scene = new Scene(cams, 5, glm::vec2(getWindowWidth(), getWindowHeight()), light, m_ambientLight);
 	m_scene->AddPointLight(glm::vec3(5, 3, 0), glm::vec3(1, 0, 0), 50);
 	m_scene->AddPointLight(glm::vec3(-5, 3, 0), glm::vec3(0, 0, 1), 50);
 
-	LaunchShader();
+	// Launch shaders return if the process fails
+	if(!LaunchShader())
+		return false;
+
+	// setup particle
 	m_scene->SetParticleShader(&m_particleShader);
 	m_emitter = new ParticleEmitter();
 	m_emitter->Initialise(1000, 500, 0.1f, 1.0f, 1, 5, 1, 0.1f, glm::vec4(1, 0, 0, 1), glm::vec4(1, 1, 0, 1));
 	m_scene->AddParticle(m_emitter);
+
 	return true;
 }
 
@@ -137,8 +141,7 @@ void AIEGraphicsApp::draw()
 	// Grid Texture Quad
 	//=================
 	m_texturedShader.bind();
-	m_modelTransform = m_quadTransform;
-	pvm = projectionMatrix * viewMatrix * m_modelTransform;
+	pvm = projectionMatrix * viewMatrix * m_quadTransform;
 	m_texturedShader.bindUniform("ProjectionViewModel", pvm);
 	m_texturedShader.bindUniform("diffuseTexture", 0);
 	m_gridTexture.bind(0);
@@ -298,35 +301,6 @@ bool AIEGraphicsApp::LaunchShader()
 
 #pragma endregion
 
-	m_bunnyTransform = {
-		1.0f,0,0,0,
-		0,1.0f,0,0,
-		0,0,1.0f,0,
-		0,0,0,1
-	};
-
-	m_spearTransform = {
-		1.0f,0,0,0,
-		0,1.0f,0,0,
-		0,0,1.0f,0,
-		0,0,0,1.0f
-	};
-
-	m_particleTransform = {
-		1.0f,0,0,0,
-		0,1.0f,0,0,
-		0,0,1.0f,0,
-		0,0,0,1.0f
-	};
-
-	m_otherTransform = {
-		0.01f,0,0,0,
-		0,0.01f,0,0,
-		0,0,0.01f,0,
-		0,0,0,0.01f
-	};
-
-
 	// Define 6 vertices for our two triangles
 	Mesh::Vertex vertices[4];
 	vertices[0].position = { -0.5f, 0 ,0.5f, 1.0f };
@@ -337,10 +311,9 @@ bool AIEGraphicsApp::LaunchShader()
 	unsigned int indices[6] = {
 		0,1,2,2,1,3
 	};
-	//m_quadMesh.Initialise(4, vertices, 6, indices);
-	//m_quadMesh.CreateGrid(2,2);
 
 	m_quadMesh.InitialiseQuad();
+
 	m_quadTransform = {
 		10,  0,  0,  0,
 		 0, 10,  0,  0,
@@ -375,7 +348,7 @@ bool AIEGraphicsApp::LaunchShader()
 			m_phongShader.bindUniform("cameraPosition", m_scene->GetCamera()->GetPosition());
 
 			// Simple binding for lightind data based on model use
-			m_phongShader.bindUniform("ModelMatrix", m_modelTransform);
+			m_phongShader.bindUniform("ModelMatrix", inst->GetTransform());
 
 			m_marbleTexture.bind(0);
 			m_phongShader.bindUniform("SeamlessTexture", 0);
