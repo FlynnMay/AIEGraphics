@@ -8,13 +8,15 @@
 #include <Gizmos.h>
 #include <imgui.h>
 #include <string>
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/matrix_decompose.hpp>
+
 
 Scene::Scene(Camera** _cameras, int _cameraCount, glm::vec2 _windowSize, Light& _light, glm::vec3 _ambientLight) :
 	m_cameras(_cameras), m_cameraCount(_cameraCount), m_cameraIndex(0), m_windowSize(_windowSize), m_globalDirlight(_light), m_ambientLight(_ambientLight)
 {
-	AddPointLights(Light({ 0,0,0 }, { 1,1,1 }, 1));
+	AddPointLight(Light({ 0,0,0 }, { 1,1,1 }, 1));
 	m_particleShader = new EasyShader();
-	//m_particleShaderFactory->SetShader();
 
 	m_particleShader->SetOnShaderBind([=](auto s)
 		{
@@ -31,7 +33,6 @@ Scene::Scene(Camera** _cameras, int _cameraCount, glm::vec2 _windowSize, Light& 
 			auto pvm = projectionMatrix * viewMatrix * pTransform;
 			s->bindUniform("ProjectionViewModel", pvm);
 		});
-
 }
 
 Scene::~Scene()
@@ -40,11 +41,6 @@ Scene::~Scene()
 	{
 		delete (*it);
 	}
-}
-
-void Scene::AddInstance(Instance* _instance)
-{
-	m_instances.push_back(_instance);
 }
 
 void Scene::Draw()
@@ -59,14 +55,19 @@ void Scene::Draw()
 	for (auto it = m_instances.begin(); it != m_instances.end(); it++)
 	{
 		Instance* instance = *it;
-		instance->Draw(this);
+		instance->Draw();
 	}
 
 	for (auto it = m_particles.begin(); it != m_particles.end(); it++)
 	{
 		ParticleEmitter* particle = *it;
-		m_particleShader->OnBindShader();
+		m_particleShader->BindShader();
 		particle->Draw();
+	}
+
+	for (int i = 0; i < GetCameraCount(); i++)
+	{
+		GetCameraAt(i)->Draw();
 	}
 
 }
@@ -75,54 +76,58 @@ void Scene::Update(float _dt)
 {
 	m_sceneRunTime += _dt;
 
-	// Camera GUI
-	ImGui::Begin("Camera Settings");
-	ImGui::DragInt("Active Camera", &m_cameraIndex, 0.1f, 0, GetCameraCount() - 1);
+	// GUI
+	UpdateCameraGUI();
+	UpdateLightGUI();
+	UpdateParticleGUI();
+	UpdateInstanceGUI();
 
-	bool debugMode = GetCamera()->GetDebugMode();
-	ImGui::Checkbox("Debug Camera", &debugMode);
-
-	if (debugMode)
-	{
-		glm::vec4 camColour = GetCamera()->GetDebugColour();
-		ImGui::ColorEdit4("Debug Colour", &camColour[0]);
-		GetCamera()->SetDebugColour(camColour);
-	}
-
-	FlyCamera* flyCam = dynamic_cast<FlyCamera*>(GetCamera());
-	if (flyCam != nullptr)
-	{
-		float speed = flyCam->GetSpeed();
-		ImGui::DragFloat("FlyCam Speed", &speed, 1, 0, 10.0f);
-		flyCam->SetSpeed(speed);
-	}
-
-	ImGui::End();
-	GetCamera()->SetDebugMode(debugMode);
 	GetCamera()->Update(_dt);
+}
 
-	// Light GUI
-	ImGui::Begin("Light Settings");
-	if (ImGui::CollapsingHeader("Sunlight"))
+void Scene::UpdateInstanceGUI()
+{
+	ImGui::Begin("Instances");
+	int i = 0;
+	std::list<Instance*> instances = GetInstances();
+	for (auto it = instances.begin(); it != instances.end(); it++)
 	{
-		ImGui::DragFloat3("Direction", &GetGlobalLight().direction[0], 0.1f, -0.1f, 1.0f);
-		ImGui::DragFloat3("Colour", &GetGlobalLight().colour[0], 0.1f, 0.0f, 2.0f);
-	}
-	for (int i = 0; i < GetLightCount(); i++)
-	{
-		std::string iString = std::to_string(i + 1);
-		if (ImGui::CollapsingHeader(iString.append(std::string(": Light")).c_str()))
+		std::string iString = std::to_string(i);
+		std::string headerName = iString;
+		headerName.append(": Instance");
+		const ImVec2 border = ImVec2(0, 0);
+		ImGui::BeginGroup();
+		if (ImGui::CollapsingHeader(headerName.c_str()))
 		{
-			std::string dirString = "Direction##";
-			std::string colString = "Colour##";
+			Instance* inst = *it;
 
-			ImGui::DragFloat3(dirString.append(iString).c_str(), &GetPointLights()[i].direction[0], 0.1f);
-			ImGui::ColorEdit3(colString.append(iString).c_str(), &GetPointLights()[i].colour[0]);
+			bool isActive = inst->GetActive();
+			ImGui::Checkbox((std::string("Is Active").append(iString)).c_str(), &isActive);
+			inst->SetActive(isActive);
+
+			glm::mat4 transform = inst->GetTransform();
+			glm::vec3 scale;
+			glm::quat rotation;
+			glm::vec3 translation;
+			
+			glm::decompose(inst->GetTransform(), scale, rotation, translation, glm::vec3(0), glm::vec4(0));
+			glm::vec3 euler = glm::degrees(glm::eulerAngles(rotation));
+
+			ImGui::DragFloat3((std::string("Postition##").append(iString)).c_str(), &translation[0], 0.1f);
+			ImGui::DragFloat3((std::string("Rotation##").append(iString)).c_str(), &euler[0], 0.1f, -180, 180);
+			ImGui::DragFloat3((std::string("Scale##").append(iString)).c_str(), &scale[0], 0.1f);
+
+			inst->SetTransform(inst->MakeTransform(translation, euler, scale));
 		}
+		ImGui::EndGroup();
+		i++;
 	}
+	SetInstances(instances);
 	ImGui::End();
+}
 
-	// Particle GUI
+void Scene::UpdateParticleGUI()
+{
 	ImGui::Begin("Particle Settings");
 	int i = 0;
 	for (auto it = m_particles.begin(); it != m_particles.end(); it++)
@@ -167,60 +172,56 @@ void Scene::Update(float _dt)
 
 	m_pointLights[0].direction = glm::vec3(glm::cos(m_sceneRunTime), m_pointLights[0].direction.y, glm::sin(m_sceneRunTime * 2) / 2) * 10.0f;
 	m_particles[0]->SetPosition(m_pointLights[0].direction);
+}
 
-	// Instances GUI
-	ImGui::Begin("Instances");
-	i = 0;
-	std::list<Instance*> instances = GetInstances();
-	for (auto it = instances.begin(); it != instances.end(); it++)
+void Scene::UpdateLightGUI()
+{
+	ImGui::Begin("Light Settings");
+	if (ImGui::CollapsingHeader("Sunlight"))
 	{
-		std::string iString = std::to_string(i);
-		std::string headerName = iString;
-		headerName.append(": Instance");
-		const ImVec2 border = ImVec2(0, 0);
-		ImGui::BeginGroup();
-		if (ImGui::CollapsingHeader(headerName.c_str()))
-		{
-			Instance* inst = *it;
-			auto transform = inst->GetTransform();
-
-			// Active
-			bool isActive = inst->GetActive();
-			ImGui::Checkbox((std::string("Is Active").append(iString)).c_str(), &isActive);
-			inst->SetActive(isActive);
-
-			// Position
-			float pos[] = { inst->GetPosition().x, inst->GetPosition().y, inst->GetPosition().z };
-
-			// Rotation
-			glm::quat quaternion = glm::quat_cast(inst->GetTransform());
-			glm::vec3 euler = glm::degrees(glm::eulerAngles(quaternion));
-			float eulerRot[] = { euler.x, euler.y, euler.z };
-
-			// Scale
-			glm::vec3 col1(transform[0][0], transform[1][0], transform[2][0]);
-			glm::vec3 col2(transform[0][1], transform[1][1], transform[2][1]);
-			glm::vec3 col3(transform[0][2], transform[1][2], transform[2][2]);
-
-			float scaleX = glm::length(col1);
-			float scaleY = glm::length(col2);
-			float scaleZ = glm::length(col3);
-
-			float scale[] = { scaleX, scaleY, scaleZ };
-
-			//std::string posStrin
-			ImGui::DragFloat3((std::string("Postition##").append(iString)).c_str(), pos, 0.1f);
-			ImGui::DragFloat3((std::string("Rotation##").append(iString)).c_str(), eulerRot, 0.1f);
-			ImGui::DragFloat3((std::string("Scale##").append(iString)).c_str(), scale, 0.1f);
-
-			//ImGui::DragFloat3("Rotation", rot, 0.1f);			
-			inst->SetTransform(inst->MakeTransform(glm::make_vec3(pos), glm::make_vec3(eulerRot), glm::make_vec3(scale)));
-		}
-		ImGui::EndGroup();
-		i++;
+		ImGui::DragFloat3("Direction", &GetGlobalLight().direction[0], 0.1f, -0.1f, 1.0f);
+		ImGui::ColorEdit3("Colour", &GetGlobalLight().colour[0]);
 	}
-	SetInstances(instances);
+	for (int i = 0; i < GetLightCount(); i++)
+	{
+		std::string iString = std::to_string(i + 1);
+		if (ImGui::CollapsingHeader(iString.append(std::string(": Light")).c_str()))
+		{
+			std::string dirString = "Direction##";
+			std::string colString = "Colour##";
+
+			ImGui::DragFloat3(dirString.append(iString).c_str(), &GetPointLights()[i].direction[0], 0.1f);
+			ImGui::ColorEdit3(colString.append(iString).c_str(), &GetPointLights()[i].colour[0]);
+		}
+	}
 	ImGui::End();
+}
+
+void Scene::UpdateCameraGUI()
+{
+	ImGui::Begin("Camera Settings");
+	ImGui::DragInt("Active Camera", &m_cameraIndex, 0.1f, 0, GetCameraCount() - 1);
+
+	bool debugMode = GetCamera()->GetDebugMode();
+	ImGui::Checkbox("Debug Camera", &debugMode);
+
+	if (debugMode)
+	{
+		glm::vec4 camColour = GetCamera()->GetDebugColour();
+		ImGui::ColorEdit4("Debug Colour", &camColour[0]);
+		GetCamera()->SetDebugColour(camColour);
+	}
+
+	FlyCamera* flyCam = dynamic_cast<FlyCamera*>(GetCamera());
+	if (flyCam != nullptr)
+	{
+		float speed = flyCam->GetSpeed();
+		ImGui::DragFloat("FlyCam Speed", &speed, 1, 0, 10.0f);
+		flyCam->SetSpeed(speed);
+	}
+
+	ImGui::End();
+	GetCamera()->SetDebugMode(debugMode);
 }
 
 Camera* Scene::GetCamera()
@@ -253,12 +254,8 @@ void Scene::SetParticleShader(aie::ShaderProgram* _shader)
 	m_particleShader->SetShader(_shader);
 }
 
-
-/*
-*	preDefShader = new EasyShader(aie::ShaderProgram _shader).WithBindAction([=](auto s) { s.bindUniform("pvm",pvm);});)
-*	instances = List<Tuple<Instance, EasyShader>>
-*	instances.push_back(new Tuple<new Instance(...), preDefShader>)
-*
-*	instances.b.Bind()
-*	instances.a.Draw()
-*/
+void Scene::AddInstance(Instance* _instance)
+{
+	_instance->SetScene(this);
+	m_instances.push_back(_instance);
+}

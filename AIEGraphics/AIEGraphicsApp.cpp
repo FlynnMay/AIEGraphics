@@ -6,6 +6,7 @@
 #include "Planet.h"
 #include "SceneObject.h"
 #include "FlyCamera.h"
+#include "EasyShader.h"
 #include "ParticleEmitter.h"
 #include <string>
 #include <imgui.h>
@@ -47,14 +48,15 @@ bool AIEGraphicsApp::startup()
 
 	Camera** cams = new Camera*;
 	cams[0] = new FlyCamera();
-	cams[1] = new Camera({ -10,5,0 });
-	cams[2] = new Camera({ 10,5,0 });
-	cams[3] = new Camera({ 0,5,10 });
-	cams[4] = new Camera({ 0,5,-10 });
+	cams[1] = new Camera({ -15,5,0 }, { 0, 0 });
+	cams[2] = new Camera({ 15,5,0 }, { 180, 0 });
+	cams[3] = new Camera({ 0,5,15 }, { 270, 0 });
+	cams[4] = new Camera({ 0,5,-15 }, { 90, 0 });
+
 
 	m_scene = new Scene(cams, 5, glm::vec2(getWindowWidth(), getWindowHeight()), light, m_ambientLight);
-	m_scene->AddPointLights(glm::vec3(5, 3, 0), glm::vec3(1, 0, 0), 50);
-	m_scene->AddPointLights(glm::vec3(-5, 3, 0), glm::vec3(0, 0, 1), 50);
+	m_scene->AddPointLight(glm::vec3(5, 3, 0), glm::vec3(1, 0, 0), 50);
+	m_scene->AddPointLight(glm::vec3(-5, 3, 0), glm::vec3(0, 0, 1), 50);
 
 	LaunchShader();
 	m_scene->SetParticleShader(&m_particleShader);
@@ -97,7 +99,7 @@ void AIEGraphicsApp::update(float deltaTime)
 	//m_light.direction = glm::normalize(glm::vec3(glm::cos(time * 2), glm::sin(time * 2), 0.0f));
 
 	// particles
-	m_emitter->Update(deltaTime, m_scene->GetCamera()->GetTransform(m_scene->GetCamera()->GetPosition(), {0,0,0}, {1,1,1}));
+	m_emitter->Update(deltaTime, m_scene->GetCamera()->GetTransform(m_scene->GetCamera()->GetPosition(), { 0,0,0 }, { 1,1,1 }));
 
 	// quit if we press escape
 	aie::Input* input = aie::Input::getInstance();
@@ -109,7 +111,9 @@ void AIEGraphicsApp::update(float deltaTime)
 
 	ImGui::Begin("Post-Processing Settings");
 	ImGui::DragInt("Post-Processing Target", &m_postProcessingTarget, 0.1f, 0, 11);
-	if (m_postProcessingTarget == 8)
+	if (m_postProcessingTarget == 1)
+		ImGui::DragInt("Blur Strength", &m_blurStrength, 0.1f, 0, 25);
+	else if (m_postProcessingTarget == 8)
 		ImGui::DragInt("Pixel Strength", &m_pixelStrength, 0.1f, 0, 255);
 	ImGui::End();
 }
@@ -118,75 +122,16 @@ void AIEGraphicsApp::draw()
 {
 	// we need to bind our render target first
 	m_renderTarget.bind();
-	
+
 	// wipe the screen to the background colour
 	clearScreen();
-	m_scene->Draw();
 
-	for (int i = 0; i < m_scene->GetCameraCount(); i++)
-	{
-		m_scene->GetCameraAt(i)->Draw();
-	}
+	m_scene->Draw();
 
 	// update perspective based on screen size
 	glm::mat4 projectionMatrix = m_scene->GetCamera()->GetProjectionMatrix(getWindowWidth(), getWindowHeight());
 	glm::mat4 viewMatrix = m_scene->GetCamera()->GetViewMatrix();
 	auto pvm = projectionMatrix * viewMatrix * mat4(1);
-
-#pragma region Bunny
-
-	//=================
-	// Bunny
-	//=================
-	//m_modelTransform = m_bunnyTransform;
-	//m_phongShader.bind();
-	//pvm = projectionMatrix * viewMatrix * m_modelTransform;
-	////// Bind the transform
-	//m_phongShader.bindUniform("ProjectionViewModel", pvm);
-
-
-	//// Bind light
-	//m_phongShader.bindUniform("AmbientColour", m_ambientLight);
-	//m_phongShader.bindUniform("LightColour", m_scene->GetGlobalLight().colour);
-	//m_phongShader.bindUniform("LightDirection", m_scene->GetGlobalLight().direction);
-	//m_phongShader.bindUniform("cameraPosition", m_cameras[m_cameraIndex]->GetPosition());
-
-	////// Simple binding for lightind data based on model use
-	//m_phongShader.bindUniform("ModelMatrix", m_modelTransform);
-
-	//m_marbleTexture.bind(0);
-	//m_phongShader.bindUniform("SeamlessTexture", 0);
-
-	//m_hatchingTexture.bind(1);
-	//m_phongShader.bindUniform("HatchingTexture", 1);
-
-	//m_rampTexture.bind(2);
-	//m_phongShader.bindUniform("RampTexture", 2);
-	//// Draw mesh
-	//m_bunnyMesh.draw();
-	//=================
-
-#pragma endregion
-
-#pragma region Soul Spear
-	////=================
-	//// Soul Spear
-	////=================
-	//m_normalMapShader.bind();
-	//m_modelTransform = m_spearTransform;
-	//pvm = projectionMatrix * viewMatrix * m_modelTransform;
-	//m_normalMapShader.bindUniform("ProjectionViewModel", pvm);
-	//m_normalMapShader.bindUniform("diffuseTexture", 0);
-	//m_normalMapShader.bindUniform("AmbientColour", m_ambientLight);
-	//m_normalMapShader.bindUniform("LightColour", m_light.colour);
-	//m_normalMapShader.bindUniform("LightDirection", m_light.direction);
-	//m_normalMapShader.bindUniform("cameraPosition", m_camera->GetPosition());
-	//m_normalMapShader.bindUniform("ModelMatrix", m_modelTransform);
-
-	////m_spearTexture.bind(0);
-	//m_spearMesh.draw();
-	////=================
-#pragma endregion
 
 	//=================
 	// Grid Texture Quad
@@ -203,14 +148,8 @@ void AIEGraphicsApp::draw()
 	m_gridTexture.bind(0);
 
 	m_quadMesh.Draw();
-	
-	m_texturedShader.bind();
 
-	// Particles
-	//pvm = projectionMatrix * viewMatrix * m_particleTransform;
-	//m_particleShader.bind();
-	//m_particleShader.bindUniform("ProjectionViewModel", pvm);
-	//m_emitter->Draw();
+	m_texturedShader.bind();
 
 	for (int i = 0; i < m_scene->GetLightCount(); i++)
 	{
@@ -231,7 +170,12 @@ void AIEGraphicsApp::draw()
 	m_postShader.bindUniform("postProcessTarget", m_postProcessingTarget);
 	m_postShader.bindUniform("width", (int)getWindowWidth());
 	m_postShader.bindUniform("height", (int)getWindowHeight());
+
+	// Pixelate Uniforms
 	m_postShader.bindUniform("pixelateStrength", m_pixelStrength);
+
+	// Blur Uniforms
+	m_postShader.bindUniform("blurStrength", m_blurStrength);
 
 	m_renderTarget.getTarget(0).bind(0);
 	m_screenQuad.Draw();
@@ -239,7 +183,7 @@ void AIEGraphicsApp::draw()
 
 bool AIEGraphicsApp::LaunchShader()
 {
-	if (!m_renderTarget.initialise(1, getWindowWidth(), getWindowHeight())) 
+	if (!m_renderTarget.initialise(1, getWindowWidth(), getWindowHeight()))
 	{
 		printf("[Render Target] Error!\n");
 		return false;
@@ -328,12 +272,6 @@ bool AIEGraphicsApp::LaunchShader()
 
 #pragma region Texture
 
-	/*if (!m_gridTexture.load("./textures/numbered_grid.tga"))
-	{
-		printf("Failed to load the grid texture, please check file path!\n");
-		return false;
-	}*/
-
 	if (!m_gridTexture.load("./Sobel.png"))
 	{
 		printf("Failed to load the grid texture, please check file path!\n");
@@ -357,18 +295,6 @@ bool AIEGraphicsApp::LaunchShader()
 		printf("Failed to load the hatching texture, please check file path!\n");
 		return false;
 	}
-
-	//if (!m_spearTexture.load("./soulspear/soulspear_diffuse.tga"))
-	//{
-	//	printf("Failed to load the spear texture, please check file path!\n");
-	//	return false;
-	//}
-
-	//if (!m_ironManTexture.load("./ironguy/M-COC_iOS_HERO_Tony_Stark_Iron_Man_Mark_VII_Body_D.png"))
-	//{
-	//	printf("Failed to load the ironman texture, please check file path!\n");
-	//	return false;
-	//}
 
 #pragma endregion
 
@@ -423,13 +349,45 @@ bool AIEGraphicsApp::LaunchShader()
 	}; // This is 10 units large
 
 	for (int i = 0; i < 10; i++)
-		m_scene->AddInstance(new Instance(glm::vec3(i * 2, 0, 0), glm::vec3(0, i * 30, i * 30), glm::vec3(1, 1, 1), &m_spearMesh, &m_normalMapShader));
+		m_scene->AddInstance(new Instance(glm::vec3(i * 2, 0, -10), glm::vec3(0, i * 30, i * 30), glm::vec3(1, 1, 1), &m_spearMesh, &m_normalMapShader));
 
 	for (int i = 0; i < 10; i++)
-		m_scene->AddInstance(new Instance(glm::vec3(i * 2, 0, 0), glm::vec3(0, 0, 0), glm::vec3(0.1f * i, 0.1f * i, 0.1f * i), &m_otherMesh, &m_normalMapShader));
+		m_scene->AddInstance(new Instance(glm::vec3(0, i * 2, 0), glm::vec3(0, 0, 0), glm::vec3(0.1f * i, 0.1f * i, 0.1f * i), &m_otherMesh, &m_normalMapShader));
 
-	//for (int i = 0; i < 10; i++)
-	//	m_scene->AddInstance(new Instance(glm::vec3(i * 2, 0, 0), glm::vec3(0, 0, 0), glm::vec3(1, 1, 1), &m_bunnyMesh, &m_normalMapShader));
+	for (int i = 0; i < 10; i++) {
+		EasyShader* easyPhongShader = new EasyShader(&m_phongShader);
+
+		Instance* inst = new Instance(glm::vec3(i * 10, 0, 10), glm::vec3(0, 0, 0), glm::vec3(1, 1, 1), &m_bunnyMesh, easyPhongShader);
+
+		easyPhongShader->SetOnShaderBind([=](aie::ShaderProgram* s) {
+			glm::mat4 projectionMatrix = m_scene->GetCamera()->GetProjectionMatrix(getWindowWidth(), getWindowHeight());
+			glm::mat4 viewMatrix = m_scene->GetCamera()->GetViewMatrix();
+			auto pvm = projectionMatrix * viewMatrix * inst->GetTransform();
+
+			// Bind the transform
+			m_phongShader.bindUniform("ProjectionViewModel", pvm);
+
+
+			// Bind light
+			m_phongShader.bindUniform("AmbientColour", m_ambientLight);
+			m_phongShader.bindUniform("LightColour", m_scene->GetGlobalLight().colour);
+			m_phongShader.bindUniform("LightDirection", m_scene->GetGlobalLight().direction);
+			m_phongShader.bindUniform("cameraPosition", m_scene->GetCamera()->GetPosition());
+
+			// Simple binding for lightind data based on model use
+			m_phongShader.bindUniform("ModelMatrix", m_modelTransform);
+
+			m_marbleTexture.bind(0);
+			m_phongShader.bindUniform("SeamlessTexture", 0);
+
+			m_hatchingTexture.bind(1);
+			m_phongShader.bindUniform("HatchingTexture", 1);
+
+			m_rampTexture.bind(2);
+			m_phongShader.bindUniform("RampTexture", 2);
+			});
+		m_scene->AddInstance(inst);
+	}
 
 	return true;
 }

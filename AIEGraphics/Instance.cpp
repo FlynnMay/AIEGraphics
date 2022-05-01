@@ -5,49 +5,66 @@
 #include "Camera.h"
 #include <Texture.h>
 #include "AIEGraphicsApp.h"
+#include "EasyShader.h"
 
-Instance::Instance(glm::mat4 _transform, aie::OBJMesh* _mesh, aie::ShaderProgram* _shader) : m_transform(_transform), m_mesh(_mesh), m_shader(_shader)
+Instance::Instance(glm::mat4 _transform, aie::OBJMesh* _mesh, aie::ShaderProgram* _shader) : m_transform(_transform), m_mesh(_mesh)
+{
+    m_easyShader = new EasyShader(_shader);
+    m_easyShader->SetOnShaderBind([=](aie::ShaderProgram* s) {
+            BindDefaultNormalMapShaderUniforms(s);
+        });
+}
+
+Instance::Instance(glm::vec3 _position, glm::vec3 _eulerAngles, glm::vec3 _scale, aie::OBJMesh* _mesh, aie::ShaderProgram* _shader) : m_mesh(_mesh)
+{
+    m_easyShader = new EasyShader(_shader);
+    m_easyShader->SetOnShaderBind([=](aie::ShaderProgram* s) {
+        BindDefaultNormalMapShaderUniforms(s);
+        });
+
+    m_transform = MakeTransform(_position, _eulerAngles, _scale);
+}
+
+Instance::Instance(glm::mat4 _transform, aie::OBJMesh* _mesh, EasyShader* _shader) : m_transform(_transform), m_mesh(_mesh), m_easyShader(_shader)
 {
 }
 
-Instance::Instance(glm::vec3 _position, glm::vec3 _eulerAngles, glm::vec3 _scale, aie::OBJMesh* _mesh, aie::ShaderProgram* _shader) : m_mesh(_mesh), m_shader(_shader)
+Instance::Instance(glm::vec3 _position, glm::vec3 _eulerAngles, glm::vec3 _scale, aie::OBJMesh* _mesh, EasyShader* _shader) : m_mesh(_mesh), m_easyShader(_shader)
 {
     m_transform = MakeTransform(_position, _eulerAngles, _scale);
 }
 
-void Instance::Draw(Camera* _camera, float _windowWidth, float _windowHeight, glm::vec3 _ambientLight, Light* _light)
-{
-}
-
-void Instance::Draw(Scene* _scene)
+void Instance::Draw()
 {
     if (!m_isActive)
         return;
 
-    // set the render pipeline
-    m_shader->bind();
+    m_easyShader->BindShader();
+    
+    m_mesh->draw();
+}
 
+void Instance::BindDefaultNormalMapShaderUniforms(aie::ShaderProgram* shader)
+{
     // bind the transforms and other relevant uniforms
-    auto pvm = _scene->GetCamera()->GetProjectionMatrix(
-        _scene->GetWindowSize().x,
-        _scene->GetWindowSize().y
-    ) * _scene->GetCamera()->GetViewMatrix() * m_transform;
-    m_shader->bindUniform("ProjectionViewModel", pvm);
-    m_shader->bindUniform("ModelMatrix", m_transform);
+    auto pvm = m_scene->GetCamera()->GetProjectionMatrix(
+        m_scene->GetWindowSize().x,
+        m_scene->GetWindowSize().y
+    ) * m_scene->GetCamera()->GetViewMatrix() * m_transform;
+    shader->bindUniform("ProjectionViewModel", pvm);
+    shader->bindUniform("ModelMatrix", m_transform);
 
     // bind the lighting and camera uniforms
-    m_shader->bindUniform("AmbientColour", _scene->GetAmbientLight());
-    m_shader->bindUniform("LightColour", _scene->GetGlobalLight().colour);
-    m_shader->bindUniform("LightDirection", _scene->GetGlobalLight().direction);
+    shader->bindUniform("AmbientColour", m_scene->GetAmbientLight());
+    shader->bindUniform("LightColour", m_scene->GetGlobalLight().colour);
+    shader->bindUniform("LightDirection", m_scene->GetGlobalLight().direction);
 
-    m_shader->bindUniform("cameraPosition", _scene->GetCamera()->GetPosition());
+    shader->bindUniform("cameraPosition", m_scene->GetCamera()->GetPosition());
 
-    int numberOfLights = _scene->GetLightCount();
-    m_shader->bindUniform("numLights", numberOfLights);
-    m_shader->bindUniform("PointLightPositions", numberOfLights, _scene->GetPointLightPositions());
-    m_shader->bindUniform("PointLightColors", numberOfLights, _scene->GetPointLightColours());
-
-    m_mesh->draw();
+    int numberOfLights = m_scene->GetLightCount();
+    shader->bindUniform("numLights", numberOfLights);
+    shader->bindUniform("PointLightPositions", numberOfLights, m_scene->GetPointLightPositions());
+    shader->bindUniform("PointLightColors", numberOfLights, m_scene->GetPointLightColours());
 }
 
 glm::mat4 Instance::MakeTransform(glm::vec3 _positon, glm::vec3 _eulerAngles, glm::vec3 _scale)

@@ -6,6 +6,7 @@ class Camera
 public:
 	Camera();
 	Camera(glm::vec3 _position);
+	Camera(glm::vec3 _position, glm::vec2 _rotation);
 	~Camera();
 
 	virtual void Update(float _dt);
@@ -20,12 +21,6 @@ public:
 
 	glm::vec4 GetDebugColour();
 
-	void SetPerspective(float fieldOfView, float aspectRatio, float near, float far);
-	void SetLookAt(glm::vec3 from, glm::vec3 to, glm::vec3 up);
-	glm::mat4 GetWorldTransform();
-	glm::mat4 GetView();
-	glm::mat4 GetProjection();
-	glm::mat4 GetProjectionView();
 	glm::mat4 GetTransform(glm::vec3 _position, glm::vec3 _euler, glm::vec3 _scale);
 	bool GetDebugMode() { return m_debugMode; }
 	void SetDebugMode(bool isDebugging) { m_debugMode = isDebugging; }
@@ -38,14 +33,5 @@ protected:
 	glm::vec4 m_debugColour;
 	float m_lastMouseX;
 	float m_lastMouseY;
-
-private:
-
-	glm::mat4 m_worldTransform;
-	glm::mat4 m_viewTransform;
-	glm::mat4 m_projectionTransform;
-	glm::mat4 m_projectionViewTransform;
-	
-	void UpdateProjectionViewTransform();
 };
 

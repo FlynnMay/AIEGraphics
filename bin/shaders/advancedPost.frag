@@ -8,6 +8,7 @@ uniform int postProcessTarget;
 uniform int width;
 uniform int height;
 uniform int pixelateStrength;
+uniform int blurStrength;
 
 out vec4 FragColor;
 
@@ -18,16 +19,17 @@ vec4 Default(vec2 texCoord){
 vec4 BoxBlur(vec2 texCoord){
     vec2 texel = 1.0f / textureSize(colourTarget, 0);
     vec4 colour = texture(colourTarget, texCoord);
-    colour += texture(colourTarget, texCoord + texel * vec2(-1, 1));
-    colour += texture(colourTarget, texCoord + texel * vec2(-1, 0));
-    colour += texture(colourTarget, texCoord + texel * vec2(-1, -1));
     
-    colour += texture(colourTarget, texCoord + texel * vec2(0, 1));
-    colour += texture(colourTarget, texCoord + texel * vec2(0, -1));
+    colour += texture(colourTarget, texCoord + texel * vec2(-blurStrength, blurStrength));
+    colour += texture(colourTarget, texCoord + texel * vec2(-blurStrength, 0));
+    colour += texture(colourTarget, texCoord + texel * vec2(-blurStrength, -blurStrength));
     
-    colour += texture(colourTarget, texCoord + texel * vec2(1, 1));
-    colour += texture(colourTarget, texCoord + texel * vec2(1, 0));
-    colour += texture(colourTarget, texCoord + texel * vec2(1, -1));
+    colour += texture(colourTarget, texCoord + texel * vec2(0, blurStrength));
+    colour += texture(colourTarget, texCoord + texel * vec2(0, -blurStrength));
+    
+    colour += texture(colourTarget, texCoord + texel * vec2(blurStrength, blurStrength));
+    colour += texture(colourTarget, texCoord + texel * vec2(blurStrength, 0));
+    colour += texture(colourTarget, texCoord + texel * vec2(blurStrength, -blurStrength));
     
     return colour / 9;
 }
@@ -76,7 +78,7 @@ vec4 Sepia(vec2 texCoord){
     return sepia;
 }
 
-vec4 GreyScale(vec2 texCoord){
+vec4 GreyblurStrength(vec2 texCoord){
     vec4 baseColour = texture(colourTarget, texCoord);
     float avg = (baseColour.r + baseColour.g + baseColour.b) / 3.0f;
     return vec4(avg, avg, avg, 1);
@@ -105,9 +107,9 @@ void main()
     vec2 texSize = textureSize(colourTarget, 0);
     vec2 texelSize = 1.0f / texSize;
 
-    // Adjust the scale and coordinates
-    vec2 scale = (texSize - texelSize) / texSize;
-    vec2 texCoord = vTexCoord / scale + texelSize * 0.5f;
+    // Adjust the blurStrength and coordinates
+    vec2 blurStrength = (texSize - texelSize) / texSize;
+    vec2 texCoord = vTexCoord / blurStrength + texelSize * 0.5f;
 
     // This will output, the desired post processing effect
     switch(postProcessTarget)    
@@ -143,9 +145,9 @@ void main()
             FragColor = Default(texCoord);
             break;
         }
-        case 6: // Grey Scale
+        case 6: // Grey blurStrength
         {
-            FragColor = GreyScale(texCoord);
+            FragColor = GreyblurStrength(texCoord);
             break;
         }
         case 7: // Invert

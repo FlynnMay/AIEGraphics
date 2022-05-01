@@ -25,7 +25,6 @@ public:
 	virtual void draw();
 
 protected:
-	//void SetupShaders(aie::ShaderProgram shader, const char* charString);
 
 	bool LaunchShader();
 
@@ -44,7 +43,6 @@ protected:
 
 	aie::Texture m_gridTexture;
 	aie::Texture m_spearTexture;
-	//aie::Texture m_ironManTexture;
 
 	aie::Texture m_marbleTexture;
 	aie::Texture m_hatchingTexture;
@@ -67,26 +65,14 @@ protected:
 	glm::mat4 m_otherTransform;
 
 	glm::mat4 m_particleTransform;
-	// camera transforms
-	//glm::mat4	m_viewMatrix;
-	//glm::mat4	m_projectionMatrix;
-
-	// camera
-	//std::vector<Camera*> m_cameras;
-	//int m_cameraIndex;
-
-	// other stuff
-	SceneObject* sun;
-	SceneObject* earth;
-	std::list<SceneObject*> m_sceneObjects;
 
 	float m_zoom = 10.0f;
 	float m_speed = 10.0f;
 	float m_rotationSpeed = 45.0f;
 	float m_rotation = 0.0f;
 	int m_pixelStrength = 1;
-	glm::vec3 m_position = glm::vec3(0);
-	
+	int m_blurStrength = 1;
+
 	glm::vec3 m_ambientLight;
 
 	Scene* m_scene;
