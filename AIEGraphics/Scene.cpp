@@ -26,14 +26,7 @@ Scene::Scene(Camera** _cameras, int _cameraCount, glm::vec2 _windowSize, Light& 
 			glm::mat4 projectionMatrix = GetCamera()->GetProjectionMatrix(GetWindowSize().x, GetWindowSize().y);
 			glm::mat4 viewMatrix = GetCamera()->GetViewMatrix();
 
-			glm::mat4 pTransform = {
-				1.0f,0,0,0,
-				0,1.0f,0,0,
-				0,0,1.0f,0,
-				0,0,0,1.0f
-			};
-
-			auto pvm = projectionMatrix * viewMatrix * pTransform;
+			auto pvm = projectionMatrix * viewMatrix;
 			s->bindUniform("ProjectionViewModel", pvm);
 		});
 }
