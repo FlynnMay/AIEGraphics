@@ -45,20 +45,20 @@ bool AIEGraphicsApp::startup()
 	m_ambientLight = { 0.25f, 0.25f, 0.25f };
 
 	// setup cameras
-	Camera** cams = new Camera*;
-	cams[0] = new FlyCamera();
-	cams[1] = new Camera({ -15,5,0 }, { 0, 0 });
-	cams[2] = new Camera({ 15,5,0 }, { 180, 0 });
-	cams[3] = new Camera({ 0,5,15 }, { 270, 0 });
-	cams[4] = new Camera({ 0,5,-15 }, { 90, 0 });
+	std::vector <Camera*> cams;
+	cams.push_back(new FlyCamera());
+	cams.push_back(new Camera({ -15,5,0 }, { 0, 0 }));
+	cams.push_back(new Camera({ 15, 5, 0}, { 180, 0 }));
+	cams.push_back(new Camera({ 0,5,15 }, { 270, 0 }));
+	cams.push_back(new Camera({ 0,5,-15 }, { 90, 0 }));
 
 	// setup scene
-	m_scene = new Scene(cams, 5, glm::vec2(getWindowWidth(), getWindowHeight()), light, m_ambientLight);
+	m_scene = new Scene(cams, glm::vec2(getWindowWidth(), getWindowHeight()), light, m_ambientLight);
 	m_scene->AddPointLight(glm::vec3(5, 3, 0), glm::vec3(1, 0, 0), 50);
 	m_scene->AddPointLight(glm::vec3(-5, 3, 0), glm::vec3(0, 0, 1), 50);
 
 	// Launch shaders return if the process fails
-	if(!LaunchShader())
+	if (!LaunchShader())
 		return false;
 
 	// setup particle

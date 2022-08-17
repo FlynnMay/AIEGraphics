@@ -12,8 +12,8 @@
 #include <glm/gtx/matrix_decompose.hpp>
 
 
-Scene::Scene(Camera** _cameras, int _cameraCount, glm::vec2 _windowSize, Light& _light, glm::vec3 _ambientLight) :
-	m_cameras(_cameras), m_cameraCount(_cameraCount), m_cameraIndex(0), m_windowSize(_windowSize), m_globalDirlight(_light), m_ambientLight(_ambientLight)
+Scene::Scene(std::vector <Camera*> _cameras, glm::vec2 _windowSize, Light& _light, glm::vec3 _ambientLight) :
+	m_cameras(_cameras), m_cameraCount(_cameras.size()), m_cameraIndex(0), m_windowSize(_windowSize), m_globalDirlight(_light), m_ambientLight(_ambientLight)
 {
 	// Add a point to move as a figure 8
 	AddPointLight(Light({ 0,0,0 }, { 1,1,1 }, 1));
