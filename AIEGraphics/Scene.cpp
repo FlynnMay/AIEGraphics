@@ -78,6 +78,11 @@ void Scene::Update(float _dt)
 	UpdateParticleGUI();
 	UpdateInstanceGUI();
 
+	Light* movingLight = &m_pointLights[0];
+	float speed = 10.0f;
+	movingLight->direction = glm::vec3(glm::cos(m_sceneRunTime) * speed, movingLight->direction.y, glm::sin(m_sceneRunTime * 2) / 2 * speed);
+	m_particles[0]->SetPosition(movingLight->direction);
+
 	GetCamera()->Update(_dt);
 }
 
@@ -170,9 +175,6 @@ void Scene::UpdateParticleGUI()
 	}
 
 	ImGui::End();
-
-	m_pointLights[0].direction = glm::vec3(glm::cos(m_sceneRunTime), m_pointLights[0].direction.y, glm::sin(m_sceneRunTime * 2) / 2) * 10.0f;
-	m_particles[0]->SetPosition(m_pointLights[0].direction);
 }
 
 void Scene::UpdateLightGUI()

@@ -342,22 +342,13 @@ bool AIEGraphicsApp::LaunchShader()
 
 
 			// Bind light
-			m_phongShader.bindUniform("AmbientColour", m_ambientLight);
-			m_phongShader.bindUniform("LightColour", m_scene->GetGlobalLight().colour);
 			m_phongShader.bindUniform("LightDirection", m_scene->GetGlobalLight().direction);
-			m_phongShader.bindUniform("cameraPosition", m_scene->GetCamera()->GetPosition());
 
 			// Simple binding for lightind data based on model use
 			m_phongShader.bindUniform("ModelMatrix", inst->GetTransform());
 
-			m_marbleTexture.bind(0);
-			m_phongShader.bindUniform("SeamlessTexture", 0);
-
-			m_hatchingTexture.bind(1);
-			m_phongShader.bindUniform("HatchingTexture", 1);
-
-			m_rampTexture.bind(2);
-			m_phongShader.bindUniform("RampTexture", 2);
+			m_rampTexture.bind(0);
+			m_phongShader.bindUniform("RampTexture", 0);
 			});
 		m_scene->AddInstance(inst);
 	}
