@@ -20,6 +20,7 @@ struct Light
 	Light() {}
 	Light(glm::vec3 _pos, glm::vec3 _colour, float intensity)
 	{
+		intensity = glm::clamp(intensity, 0.0f, 1.0f);
 		direction = _pos;
 		colour = _colour * intensity;
 	}

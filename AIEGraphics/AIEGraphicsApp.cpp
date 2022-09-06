@@ -54,8 +54,8 @@ bool AIEGraphicsApp::startup()
 
 	// setup scene
 	m_scene = new Scene(cams, glm::vec2(getWindowWidth(), getWindowHeight()), light, m_ambientLight);
-	m_scene->AddPointLight(glm::vec3(5, 3, 0), glm::vec3(1, 0, 0), 50);
-	m_scene->AddPointLight(glm::vec3(-5, 3, 0), glm::vec3(0, 0, 1), 50);
+	m_scene->AddPointLight(glm::vec3(5, 3, 0), glm::vec3(1, 0, 0), 1);
+	m_scene->AddPointLight(glm::vec3(-5, 3, 0), glm::vec3(0, 0, 1), 1);
 
 	// Launch shaders return if the process fails
 	if (!LaunchShader())
