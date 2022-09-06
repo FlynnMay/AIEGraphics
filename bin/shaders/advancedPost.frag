@@ -140,39 +140,19 @@ void main()
             FragColor = Sepia(texCoord);
             break;
         }
-        case 5: // Scanlines
-        {
-            FragColor = Default(texCoord);
-            break;
-        }
-        case 6: // Grey blurStrength
+        case 5: // Grey blurStrength
         {
             FragColor = GreyblurStrength(texCoord);
             break;
         }
-        case 7: // Invert
+        case 6: // Invert
         {
             FragColor = Invert(texCoord);
             break;
         }
-        case 8: // Pixilizer
+        case 7: // Pixilizer
         {
             FragColor = Pixelate(texCoord);
-            break;
-        }
-        case 9: // Posterization
-        {
-            FragColor = Default(texCoord);
-            break;
-        }
-        case 10: // Distance Fog
-        {
-            FragColor = Default(texCoord);
-            break;
-        }
-        case 11: // Depth of Field
-        {
-            FragColor = Default(texCoord);
             break;
         }
     }
